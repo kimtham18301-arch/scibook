@@ -5,12 +5,13 @@ var D = window.KHTN || [];
 var EXAMS = window.KHTN_EXAMS || [];
 var BANK = window.KHTNBank;
 var app = document.getElementById('app');
+
 var SUBJ = { hoa:'Hóa học', ly:'Vật lí', sinh:'Sinh học', td:'Mở đầu / Trái Đất' };
 var DIFF = {
-  1:'Mức 1 · Câu Dễ',
+  1:'Mức 1 · Dễ',
   2:'Mức 2 · Trung bình',
-  3:'Mức 3 · Câu Khá',
-  4:'Mức 4 · Câu Khó'
+  3:'Mức 3 · Khá',
+  4:'Mức 4 · Khó'
 };
 var DIFF_SHORT = {
   1:'Mức 1 · Dễ',
@@ -19,11 +20,25 @@ var DIFF_SHORT = {
   4:'Mức 4 · Khó'
 };
 var STAGE_META = {
-  1: { term:'HK1', title:'Giai đoạn 1 – Đầu Học kì I đến Giữa kì I (Tuần 1 – Tuần 9)', note:'Học tới đâu làm đề tới đó: Học bài → Kiểm tra 15p (Lần 1, 2) → Kiểm tra Giữa kì I.' },
-  2: { term:'HK1', title:'Giai đoạn 2 – Sau Giữa kì I đến Cuối kì I (Tuần 10 – Tuần 18)', note:'Học bài mới sau Giữa kì → Kiểm tra 15p (Lần 3, 4) → Kiểm tra Cuối kì I. Không trộn kiến thức HK2.' },
-  3: { term:'HK2', title:'Giai đoạn 3 – Đầu Học kì II đến Giữa kì II (Tuần 19 – Tuần 26)', note:'Học đầu Học kì II → Kiểm tra 15p (Lần 1, 2) → Kiểm tra Giữa kì II.' },
-  4: { term:'HK2', title:'Giai đoạn 4 – Sau Giữa kì II đến Cuối kì II (Tuần 27 – Tuần 35)', note:'Học nửa sau Học kì II → Kiểm tra 15p (Lần 3, 4) → Kiểm tra Cuối kì II.' },
-  5: { term:'Cả năm', title:'Giai đoạn 5 – Ôn tổng hợp cả năm & Bồi dưỡng Nâng cao', note:'Dùng khi đã học xong cả 2 học kì hoặc ôn hè lên lớp mới.' }
+  1: { term:'HK1', title:'Nửa đầu Học kì I → Kiểm tra Giữa kì I', note:'Bám sát các chương đầu Học kì I trong SGK.' },
+  2: { term:'HK1', title:'Nửa sau Học kì I → Kiểm tra Cuối kì I', note:'Các chương cuối Học kì I (không trộn kiến thức Học kì II).' },
+  3: { term:'HK2', title:'Nửa đầu Học kì II → Kiểm tra Giữa kì II', note:'Các chương mở đầu Học kì II trong SGK.' },
+  4: { term:'HK2', title:'Nửa sau Học kì II → Kiểm tra Cuối kì II', note:'Hoàn thành các chương cuối năm học.' },
+  5: { term:'Cả năm', title:'Đề Tổng hợp & Bồi dưỡng Nâng cao', note:'Dùng khi đã học xong chương trình cả năm hoặc ôn chuyển cấp.' }
+};
+
+var SGK_PDF_URLS = {
+  6: 'https://thuvienhoclieu.com/sach-giao-khoa-mon-khtn-lop-6-thong-nhat-file-pdf/',
+  7: 'https://thuvienhoclieu.com/sach-giao-khoa-mon-khtn-lop-7-thong-nhat-file-pdf/',
+  8: 'https://thuvienhoclieu.com/sach-giao-khoa-mon-khtn-lop-8-thong-nhat-file-pdf/',
+  9: 'https://thuvienhoclieu.com/sach-giao-khoa-mon-khtn-lop-9-thong-nhat-file-pdf/'
+};
+
+var GRADE_SGK_INFO = {
+  6: '10 Chương · Bài 1 – Bài 54 SGK',
+  7: 'Mở đầu & 10 Chương · Bài 1 – Bài 42 SGK',
+  8: 'Mở đầu & 8 Chương · Bài 1 – Bài 46 SGK',
+  9: 'Mở đầu & 14 Chương · Bài 1 – Bài 51 SGK'
 };
 
 var byId = {};
@@ -32,7 +47,6 @@ var examById = {};
 EXAMS.forEach(function(ex){ examById[ex.id] = ex; });
 
 var KEY_PROG = 'khtn-progress-v1';
-var KEY_DRAFT = 'khtn-drafts-v1';
 var KEY_MISTAKE = 'khtn-mistakes-v1';
 var KEY_EXAMS = 'khtn-exams-v1';
 var KEY_META = 'khtn-meta-v1';
@@ -57,8 +71,6 @@ function writeJSON(key, val){
 }
 function loadProg(){ return readJSON(KEY_PROG, {}); }
 function saveProg(p){ return writeJSON(KEY_PROG, p); }
-function loadDrafts(){ return readJSON(KEY_DRAFT, {}); }
-function saveDrafts(d){ return writeJSON(KEY_DRAFT, d); }
 function loadMistakes(){ return readJSON(KEY_MISTAKE, {}); }
 function saveMistakes(m){ return writeJSON(KEY_MISTAKE, m); }
 function loadExams(){ return readJSON(KEY_EXAMS, {}); }
@@ -69,7 +81,7 @@ function saveMeta(m){ return writeJSON(KEY_META, m); }
 function getPrefGrade(){
   var m = loadMeta();
   var g = Number(m.prefGrade);
-  return [6,7,8,9].indexOf(g) > -1 ? g : 8;
+  return [6,7,8,9].indexOf(g) > -1 ? g : 7;
 }
 function setPrefGrade(g){
   if ([6,7,8,9].indexOf(Number(g)) === -1) return;
@@ -81,26 +93,20 @@ function setPrefGrade(g){
 function syncGradeNavLinks(){
   var g = getPrefGrade();
   var navEx = document.getElementById('nav-exam-link');
-  var bGrade = document.getElementById('bnav-grade-link');
-  var bGradeLbl = document.getElementById('bnav-grade-lbl');
   var bExam = document.getElementById('bnav-exam-link');
   if (navEx) navEx.setAttribute('href', '#/de-kiem-tra/' + g);
-  if (bGrade) bGrade.setAttribute('href', '#/lop/' + g);
-  if (bGradeLbl) bGradeLbl.textContent = 'Lớp ' + g;
   if (bExam) bExam.setAttribute('href', '#/de-kiem-tra/' + g);
 }
 
-// --- Toast Notification ---
+// --- Toast & Speech ---
 function showToast(msg){
   var el = document.getElementById('toast');
   if (!el) return;
   el.textContent = msg;
   el.hidden = false;
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ el.hidden = true; }, 3200);
+  toastTimer = setTimeout(function(){ el.hidden = true; }, 3000);
 }
-
-// --- Stop Speech Synthesis Safely ---
 function stopSpeech(){
   try {
     if (window.speechSynthesis && window.speechSynthesis.speaking) {
@@ -109,11 +115,11 @@ function stopSpeech(){
   } catch (e) {}
 }
 
-// --- Copy Text Helper (works across phones & older browsers) ---
+// --- Copy & Share Modal ---
 function copyText(txt, okMsg){
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(txt).then(function(){
-      showToast(okMsg || '✓ Đã sao chép đường link! Bạn dán gửi qua Zalo được ngay.');
+      showToast(okMsg || '✓ Đã sao chép đường link.');
     }).catch(function(){ fallbackCopy(txt, okMsg); });
   } else {
     fallbackCopy(txt, okMsg);
@@ -129,13 +135,12 @@ function fallbackCopy(txt, okMsg){
   ta.select();
   try {
     document.execCommand('copy');
-    showToast(okMsg || '✓ Đã sao chép đường link! Bạn dán gửi qua Zalo được ngay.');
+    showToast(okMsg || '✓ Đã sao chép đường link.');
   } catch (e) {
-    prompt('Sao chép đường link dưới đây:', txt);
+    prompt('Sao chép đường link:', txt);
   }
   document.body.removeChild(ta);
 }
-
 function getShareableBaseUrl(){
   if (location.hostname && location.hostname.indexOf('github.io') > -1) {
     return location.origin + location.pathname;
@@ -147,8 +152,6 @@ function getShareableCurrentUrl(){
   var h = location.hash || '';
   return h && h !== '#/' ? (base + h) : base;
 }
-
-// --- Info Modal (Help & Share) ---
 function openInfoModal(titleHtml, bodyHtml, onMount){
   var modal = document.getElementById('info-modal');
   if (!modal) return;
@@ -179,84 +182,41 @@ function openShareModal(customLabel){
   var hasSpecificPage = curUrl !== homeUrl;
   var canNativeShare = typeof navigator.share === 'function';
 
-  var html =
-    '<p style="margin-top:0">Ai có đường link này đều mở học và in đề được ngay <b>trên điện thoại, iPad và máy tính</b> — hoàn toàn miễn phí, không cần tạo tài khoản.</p>';
-
+  var html = '<p style="margin-top:0">Mở học trực tiếp trên điện thoại, máy tính bảng và máy tính — miễn phí, không cần tài khoản.</p>';
   if (hasSpecificPage) {
     html +=
-      '<div class="card highlight" style="margin-bottom:12px">' +
-        '<b>Gửi đúng bài / đề đang mở' + (customLabel ? ' (' + esc(customLabel) + ')' : '') + ':</b>' +
-        '<div style="margin:6px 0;padding:8px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;word-break:break-all;font-size:.88rem">' + esc(curUrl) + '</div>' +
+      '<div class="card highlight" style="margin-bottom:10px">' +
+        '<b>Link mục đang mở' + (customLabel ? ' (' + esc(customLabel) + ')' : '') + ':</b>' +
+        '<div style="margin:6px 0;padding:7px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;word-break:break-all;font-size:.86rem">' + esc(curUrl) + '</div>' +
         '<div class="row">' +
-          '<button type="button" class="btn sm" id="sh-copy-cur">Sao chép link bài đang mở</button>' +
-          (canNativeShare ? '<button type="button" class="btn sm alt" id="sh-native-cur">Gửi qua Zalo / Messenger</button>' : '') +
+          '<button type="button" class="btn sm" id="sh-copy-cur">Sao chép link này</button>' +
+          (canNativeShare ? '<button type="button" class="btn sm alt" id="sh-native-cur">Gửi qua Zalo / Tin nhắn</button>' : '') +
         '</div>' +
       '</div>';
   }
-
   html +=
-    '<div class="card" style="margin-bottom:12px">' +
-      '<b>Link Trang chủ (Đầy đủ Lớp 6, 7, 8, 9):</b>' +
-      '<div style="margin:6px 0;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;word-break:break-all;font-size:.9rem;font-weight:600">' + esc(homeUrl) + '</div>' +
+    '<div class="card">' +
+      '<b>Link Mục lục đầy đủ (Lớp 6 – 9):</b>' +
+      '<div style="margin:6px 0;padding:7px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;word-break:break-all;font-size:.88rem;font-weight:600">' + esc(homeUrl) + '</div>' +
       '<div class="row">' +
-        '<button type="button" class="btn ' + (hasSpecificPage ? 'sm alt' : '') + '" id="sh-copy-home">Sao chép link Trang chủ</button>' +
-        (canNativeShare && !hasSpecificPage ? '<button type="button" class="btn alt" id="sh-native-home">Mở bảng gửi nhanh (Zalo / Tin nhắn)</button>' : '') +
+        '<button type="button" class="btn ' + (hasSpecificPage ? 'sm alt' : 'sm') + '" id="sh-copy-home">Sao chép link Trang chủ</button>' +
       '</div>' +
-    '</div>' +
-    '<div class="card soft">' +
-      '<b>Mẹo ghim ra màn hình điện thoại:</b>' +
-      '<ul class="tight" style="font-size:.9rem">' +
-        '<li><b>iPhone / iPad (Safari):</b> Bấm nút <b>Chia sẻ</b> → Chọn <b>Thêm vào MH chính</b>.</li>' +
-        '<li><b>Android (Chrome):</b> Bấm dấu <b>⋮</b> góc phải trên → Chọn <b>Thêm vào màn hình chính</b>.</li>' +
-      '</ul>' +
     '</div>';
 
   openInfoModal('Chia sẻ đường link học tập', html, function(modal){
     var bCur = modal.querySelector('#sh-copy-cur');
-    if (bCur) bCur.onclick = function(){ copyText(curUrl, 'Đã sao chép link bài đang mở.'); };
+    if (bCur) bCur.onclick = function(){ copyText(curUrl, '✓ Đã sao chép link mục đang mở.'); };
     var bHome = modal.querySelector('#sh-copy-home');
-    if (bHome) bHome.onclick = function(){ copyText(homeUrl, 'Đã sao chép link Trang chủ.'); };
+    if (bHome) bHome.onclick = function(){ copyText(homeUrl, '✓ Đã sao chép link Trang chủ.'); };
     var bNatCur = modal.querySelector('#sh-native-cur');
     if (bNatCur) bNatCur.onclick = function(){
       navigator.share({ title: customLabel || 'SciBook', url: curUrl }).catch(function(){});
     };
-    var bNatHome = modal.querySelector('#sh-native-home');
-    if (bNatHome) bNatHome.onclick = function(){
-      navigator.share({ title: 'SciBook – Sổ tay Khoa học tự nhiên', url: homeUrl }).catch(function(){});
-    };
   });
 }
 
-function openHelpModal(){
-  var html =
-    '<div class="card highlight" style="margin-bottom:12px">' +
-      '<b>Sử dụng trực tiếp, không cần tài khoản:</b>' +
-      '<div class="muted" style="font-size:.9rem;margin-top:4px">Miễn phí 100%, không quảng cáo. Kết quả học và sổ điểm tự lưu ngay trên trình duyệt.</div>' +
-    '</div>' +
-    '<div style="display:grid;gap:10px">' +
-      '<div class="card">' +
-        '<b>1. Học theo bài trên lớp</b>' +
-        '<div class="muted" style="font-size:.9rem;margin-top:3px">Chọn <b>Lớp 6, 7, 8 hoặc 9</b> → chọn bài học để xem tóm tắt lý thuyết, giải thích công thức, các dạng bài tập mẫu và câu hỏi từ <b>Dễ → Khó</b>.</div>' +
-      '</div>' +
-      '<div class="card">' +
-        '<b>2. Làm đề kiểm tra 15 phút · Giữa kì · Cuối kì</b>' +
-        '<div class="muted" style="font-size:.9rem;margin-top:3px">Mở mục <b>Đề kiểm tra</b> → chọn đúng giai đoạn đang học ở trường. Có thể xem đáp án ngay từng câu hoặc nộp chấm điểm cuối giờ.</div>' +
-      '</div>' +
-      '<div class="card">' +
-        '<b>3. In ra giấy A4 hoặc lưu file PDF</b>' +
-        '<div class="muted" style="font-size:.9rem;margin-top:3px">Mở mục <b>In đề A4</b> → chọn đề cần in → bấm <b>In ra giấy / Lưu thành PDF</b>. Hệ thống tách riêng <b>Tờ Đề bài</b> ở trang trước và <b>Tờ Đáp án</b> sang trang mới.</div>' +
-      '</div>' +
-      '<div class="card">' +
-        '<b>4. Đổi cỡ chữ &amp; chế độ nền tối</b>' +
-        '<div class="muted" style="font-size:.9rem;margin-top:3px">Dùng nút <b>A+ Cỡ chữ</b> và <b>Nền tối</b> ở góc phải thanh trên cùng để điều chỉnh phù hợp mắt nhìn.</div>' +
-      '</div>' +
-    '</div>';
-  openInfoModal('Hướng dẫn sử dụng nhanh', html);
-}
-
-// --- Top Bar Controls Init (Theme, Font Size, Share, Help) ---
+// --- Top Bar Controls Init ---
 (function initTopControls(){
-  // 1. Theme
   var themeBtn = document.getElementById('theme-toggle');
   var savedTheme = null;
   try { savedTheme = localStorage.getItem(KEY_THEME); } catch (e) {}
@@ -274,11 +234,9 @@ function openHelpModal(){
       var next = theme === 'dark' ? 'light' : 'dark';
       try { localStorage.setItem(KEY_THEME, next); } catch (e) {}
       applyTheme(next);
-      showToast(next === 'dark' ? 'Đã chuyển sang giao diện tối' : 'Đã chuyển sang giao diện sáng');
     };
   }
 
-  // 2. Font size scaling (normal -> large -> xlarge -> normal)
   var fontBtn = document.getElementById('font-toggle');
   var savedFont = 'normal';
   try { savedFont = localStorage.getItem(KEY_FONTSIZE) || 'normal'; } catch (e) {}
@@ -296,20 +254,14 @@ function openHelpModal(){
   applyFont(savedFont);
   if (fontBtn) {
     fontBtn.onclick = function(){
-      var nextIdx = (fontModes.indexOf(savedFont) + 1) % fontModes.length;
-      var nextF = fontModes[nextIdx];
+      var nextF = fontModes[(fontModes.indexOf(savedFont) + 1) % fontModes.length];
       try { localStorage.setItem(KEY_FONTSIZE, nextF); } catch (e) {}
       applyFont(nextF);
-      showToast(nextF === 'large' ? 'Đã bật cỡ chữ to' : (nextF === 'xlarge' ? 'Đã bật cỡ chữ rất to' : 'Đã trở về cỡ chữ chuẩn'));
     };
   }
 
-  // 3. Share & Help buttons
   var shareBtn = document.getElementById('share-btn');
   if (shareBtn) shareBtn.onclick = function(){ openShareModal(); };
-  var helpBtn = document.getElementById('help-btn');
-  if (helpBtn) helpBtn.onclick = function(){ openHelpModal(); };
-
   syncGradeNavLinks();
 })();
 
@@ -349,7 +301,6 @@ function fmtNum(n){ return String(n).replace('.', ','); }
 function score10(ratio){ return (Math.round(ratio * 100) / 10).toFixed(1).replace('.', ','); }
 function round1(val){ return Math.round(val * 10) / 10; }
 
-// Forgiving numeric input parser: accepts comma/dot decimals, accidental trailing units (e.g. "50 cm/s", "25%"), and simple fractions ("1/2")
 function parseNumInput(raw, unitHint){
   var s = String(raw || '').trim();
   if (!s) return NaN;
@@ -357,7 +308,7 @@ function parseNumInput(raw, unitHint){
     var uEsc = String(unitHint).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     s = s.replace(new RegExp('\\s*' + uEsc + '\\s*$', 'i'), '').trim();
   }
-  s = s.replace(/\s*(cm\/s|m\/s²|m\/s|km\/h|mmol|mol|gam|kg|mg|ml|ms|hz|kpa|pa|kj|kw|amu|giờ|phút|độ|cm²|m²|cm³|m³|cm|mm|km|lít|%|°|g|h|s|l|m|n|j|v|a|w)\s*$/i, '').trim();
+  s = s.replace(/\s*(cm\/s|m\/s²|m\/s|km\/h|mmol|mol|kcal|gam|kg|mg|ml|ms|hz|kpa|pa|kj|kw|amu|giờ|phút|độ|cm²|m²|cm³|m³|cm|mm|km|lít|%|°|g|h|s|l|m|n|j|v|a|w)\s*$/i, '').trim();
   var clean = s.replace(/\s+/g, '').replace(',', '.');
   if (/^[+-]?\d+(\.\d+)?\/[+-]?\d+(\.\d+)?$/.test(clean)) {
     var parts = clean.split('/');
@@ -391,6 +342,9 @@ function pct(list){
   list.forEach(function(t){ if (isMastered(t.id)) d++; });
   return Math.round((d / list.length) * 100);
 }
+function displayLessonTitle(t){
+  return (t.sgk ? t.sgk + ': ' : '') + t.title;
+}
 function pickHint(topic, q){
   if (!topic) return '';
   var candidates = (topic.formulas || []).concat(topic.theory || []);
@@ -406,7 +360,6 @@ function pickHint(topic, q){
   return bestCand;
 }
 
-// Clean text for Vietnamese Speech Synthesis
 function plainSpeechText(raw){
   var s = String(raw || '').split(' || ')[0];
   var subMap = {'₀':'0','₁':'1','₂':'2','₃':'3','₄':'4','₅':'5','₆':'6','₇':'7','₈':'8','₉':'9'};
@@ -462,17 +415,10 @@ function getTopicPool(topic, rounds){
   return (topic.questions || []).map(function(q, i){ return { q: q, staticIdx: i, d: getDiff(q) }; });
 }
 
-function getResumeTarget(){
-  var meta = loadMeta();
-  if (meta.lastLessonId && byId[meta.lastLessonId]) {
-    return { id: meta.lastLessonId, kind: 'recent' };
-  }
-  var pg = getPrefGrade();
-  var nextL = D.find(function(t){ return t.grade === pg && !isMastered(t.id); }) ||
-              D.find(function(t){ return t.grade === 8 && !isMastered(t.id); }) ||
-              D.find(function(t){ return t.grade === 7 && !isMastered(t.id); }) ||
-              D.find(function(t){ return !isMastered(t.id); }) || D[0];
-  return nextL ? { id: nextL.id, kind: 'suggest' } : null;
+function getSortedGradeLessons(g){
+  return D.filter(function(t){ return t.grade === g; }).slice().sort(function(a, b){
+    return (a.order || 99) - (b.order || 99);
+  });
 }
 
 function updateNavActive(routeKey){
@@ -482,15 +428,14 @@ function updateNavActive(routeKey){
     if (active) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
   });
-  var bKey = routeKey.indexOf('lop-') === 0 ? 'lop' : routeKey;
   document.querySelectorAll('#bottom-nav a').forEach(function(a){
-    var active = a.dataset.bnav === bKey;
+    var active = a.dataset.bnav === routeKey;
     a.classList.toggle('active', active);
   });
 }
 
 // ============================================================================
-// BẢNG LỘ TRÌNH KIỂM TRA THEO THỨ TỰ THỜI GIAN HỌC KÌ & SỔ ĐIỂM THÔNG TƯ 22
+// SỔ ĐIỂM THÔNG TƯ 22 CHO ĐỦ CẢ 4 KHỐI LỚP 6, 7, 8, 9
 // ============================================================================
 function computeCircular22Gradebook(g){
   var examStats = loadExams();
@@ -517,12 +462,11 @@ function computeCircular22Gradebook(g){
   var hk1 = calcTermAvg('hk1');
   var hk2 = calcTermAvg('hk2');
   var cn = (hk1 != null && hk2 != null) ? round1((hk1 + 2 * hk2) / 3) : null;
-
   return { byCol: byCol, hk1: hk1, hk2: hk2, cn: cn };
 }
 
 function rankLabel(score){
-  if (score == null || isNaN(score)) return 'Chưa đủ bài kiểm tra';
+  if (score == null || isNaN(score)) return 'Chưa đủ cột điểm';
   if (score >= 8.0) return 'Tốt (Giỏi)';
   if (score >= 6.5) return 'Khá';
   if (score >= 5.0) return 'Đạt';
@@ -531,10 +475,6 @@ function rankLabel(score){
 
 function mountGradebookWidget(containerEl, g){
   if (!containerEl) return;
-  if (g !== 7 && g !== 8) {
-    containerEl.innerHTML = '';
-    return;
-  }
   var gb = computeCircular22Gradebook(g);
   var simMode = false;
 
@@ -547,18 +487,18 @@ function mountGradebookWidget(containerEl, g){
       return '<td' + cls + '><input type="text" class="gb-inp" data-col="' + colKey + '" value="' + (v != null ? fmtNum(v) : '8,0') + '"></td>';
     }
     if (v != null) {
-      return '<td' + cls + '><a class="gb-cell-link ' + (v >= 6.5 ? 'done' : '') + '" href="#/lam-de/' + info.exam.id + '" title="Bấm để làm lại: ' + esc(info.exam.title) + '">' + fmtNum(v.toFixed(1)) + '</a></td>';
+      return '<td' + cls + '><a class="gb-cell-link ' + (v >= 6.5 ? 'done' : '') + '" href="#/lam-de/' + info.exam.id + '" title="' + esc(info.exam.title) + '">' + fmtNum(v.toFixed(1)) + '</a></td>';
     }
-    return '<td' + cls + '><a class="gb-cell-link" href="#/lam-de/' + info.exam.id + '" title="' + esc(info.exam.title) + '">Làm bài ›</a></td>';
+    return '<td' + cls + '><a class="gb-cell-link" href="#/lam-de/' + info.exam.id + '" title="' + esc(info.exam.title) + '">Làm đề ›</a></td>';
   }
 
   function render(){
     var h =
-      '<section class="card" style="margin:14px 0">' +
+      '<section class="card" style="margin:12px 0">' +
         '<div class="row between">' +
           '<div>' +
-            '<b>Bảng lộ trình đề kiểm tra – Lớp ' + g + '</b>' +
-            '<div class="muted" style="font-size:.85rem;line-height:1.6">Bấm <b>Làm bài ›</b> theo đúng thứ tự kiểm tra trên lớp để rèn đề và tự tính điểm trung bình học kì.</div>' +
+            '<b>Bảng điểm theo kì – KHTN Lớp ' + g + ' (Thông tư 22)</b>' +
+            '<div class="muted" style="font-size:.84rem">Bấm vào từng ô để làm đề tương ứng hoặc bấm <b>Nhập thử điểm trường</b> để nhẩm điểm tổng kết.</div>' +
           '</div>' +
           '<button type="button" class="btn sm ' + (simMode ? 'on' : 'alt') + '" id="gb-sim-btn">' + (simMode ? '✕ Đóng tính thử' : 'Nhập thử điểm trường') + '</button>' +
         '</div>' +
@@ -567,17 +507,17 @@ function mountGradebookWidget(containerEl, g){
             '<thead>' +
               '<tr>' +
                 '<th rowspan="2">Học kì</th>' +
-                '<th colspan="3" class="gb-stage-h1">Nửa đầu học kì → Giữa kì</th>' +
+                '<th colspan="3" class="gb-stage-h1">Nửa đầu kì → Giữa kì</th>' +
                 '<th colspan="3" class="gb-stage-h2">Sau Giữa kì → Cuối kì</th>' +
                 '<th rowspan="2">ĐTB kì</th>' +
               '</tr>' +
               '<tr>' +
-                '<th>KT 15 phút<br><small>Lần 1</small></th>' +
-                '<th>KT 15 phút<br><small>Lần 2</small></th>' +
-                '<th class="gb-milestone">Kiểm tra<br>Giữa kì</th>' +
-                '<th>KT 15 phút<br><small>Lần 3</small></th>' +
-                '<th>KT 15 phút<br><small>Lần 4</small></th>' +
-                '<th class="gb-milestone">Kiểm tra<br>Cuối kì</th>' +
+                '<th>15p Lần 1</th>' +
+                '<th>15p Lần 2</th>' +
+                '<th class="gb-milestone">Giữa kì (×2)</th>' +
+                '<th>15p Lần 3</th>' +
+                '<th>15p Lần 4</th>' +
+                '<th class="gb-milestone">Cuối kì (×3)</th>' +
               '</tr>' +
             '</thead>' +
             '<tbody>' +
@@ -596,9 +536,9 @@ function mountGradebookWidget(containerEl, g){
             '</tbody>' +
           '</table>' +
         '</div>' +
-        '<div class="row between" style="font-size:.9rem">' +
-          '<span id="gb-year-summary"><b>Điểm TB cả năm:</b> ' + (gb.cn != null ? ('<b class="done">' + fmtNum(gb.cn.toFixed(1)) + '</b> (' + rankLabel(gb.cn) + ')') : 'Bấm <b>Làm bài ›</b> ở từng cột hoặc bấm <b>Nhập thử điểm trường</b> để tính điểm tổng kết.') + '</span>' +
-          '<span class="muted">' + fmtMath('ĐTB_kì = \\frac{Tổng điểm 15p + 2·GK + 3·CK}{Số bài 15p + 5}') + '</span>' +
+        '<div class="row between" style="font-size:.86rem">' +
+          '<span id="gb-year-summary"><b>Điểm TB cả năm:</b> ' + (gb.cn != null ? ('<b class="done">' + fmtNum(gb.cn.toFixed(1)) + '</b> (' + rankLabel(gb.cn) + ')') : 'Hoàn thành các bài hoặc bấm <b>Nhập thử điểm trường</b> để tính.') + '</span>' +
+          '<span class="muted">' + fmtMath('ĐTB_kì = \\frac{Tổng 15p + 2·GK + 3·CK}{Số bài 15p + 5}') + '</span>' +
         '</div>' +
       '</section>';
 
@@ -627,16 +567,12 @@ function mountGradebookWidget(containerEl, g){
       containerEl.querySelector('#gb-avg-hk1').innerHTML = '<b>' + (s1 != null ? fmtNum(s1.toFixed(1)) : '—') + '</b>';
       containerEl.querySelector('#gb-avg-hk2').innerHTML = '<b>' + (s2 != null ? fmtNum(s2.toFixed(1)) : '—') + '</b>';
       containerEl.querySelector('#gb-year-summary').innerHTML =
-        '<b>ĐTB cả năm (tính thử):</b> ' + (scn != null ? ('<b class="done">' + fmtNum(scn.toFixed(1)) + ' / 10</b> — Xếp loại: <b>' + rankLabel(scn) + '</b>') : 'Nhập điểm từ 0 đến 10 (có thể xóa trống Lần 4 nếu trường chỉ lấy 3 bài 15p).');
+        '<b>ĐTB cả năm (nhẩm thử):</b> ' + (scn != null ? ('<b class="done">' + fmtNum(scn.toFixed(1)) + ' / 10</b> — <b>' + rankLabel(scn) + '</b>') : 'Nhập điểm từ 0 đến 10 (có thể để trống Lần 4 nếu chỉ lấy 3 cột 15p).');
     }
-
     if (simMode) {
-      containerEl.querySelectorAll('.gb-inp').forEach(function(inp){
-        inp.oninput = recalcSim;
-      });
+      containerEl.querySelectorAll('.gb-inp').forEach(function(inp){ inp.oninput = recalcSim; });
     }
   }
-
   render();
 }
 
@@ -649,13 +585,12 @@ function renderQ(q, displayIdx, opts){
 
   var choices = q.o ? (opts.order && opts.order.length === q.o.length ? opts.order : shuffle(q.o)) : null;
   var topicBadge = opts.showTopic && opts.topic
-    ? '<span class="badge">Lớp ' + opts.topic.grade + ' · ' + esc(opts.topic.title.replace(/^Bài \d+:\s*/, '')) + '</span>'
+    ? '<span class="badge">Lớp ' + opts.topic.grade + ' · ' + esc(opts.topic.sgk || opts.topic.title) + '</span>'
     : '';
-  var typeLabel = q.o ? 'Chọn đáp án A, B, C, D' : 'Điền con số';
 
   var h =
     '<div class="q-head">' +
-      '<div class="q-meta">' + diffBadge(q) + topicBadge + '<span class="badge">' + typeLabel + '</span></div>' +
+      '<div class="q-meta">' + diffBadge(q) + topicBadge + '</div>' +
       '<div class="q-text"><b>Câu ' + (displayIdx + 1) + '.</b> ' + fmtMath(q.q) + '</div>' +
     '</div>';
 
@@ -667,15 +602,15 @@ function renderQ(q, displayIdx, opts){
   } else {
     h +=
       '<div class="num">' +
-        '<input type="text" inputmode="decimal" placeholder="Chỉ nhập số (VD: 1,5)" aria-label="Nhập đáp án số">' +
+        '<input type="text" inputmode="decimal" placeholder="Nhập đáp số (VD: 1,5)" aria-label="Nhập đáp án số">' +
         (q.u ? '<span class="badge">' + esc(q.u) + '</span>' : '') +
-        (deferred ? '' : '<button type="button" class="btn sm" data-act="check">✓ Kiểm tra đáp án</button>') +
+        (deferred ? '' : '<button type="button" class="btn sm" data-act="check">Kiểm tra</button>') +
       '</div>' +
       '<div class="fb-err" hidden></div>';
   }
 
   if (opts.hintText && !deferred) {
-    h += '<div class="row" style="margin-top:8px"><button type="button" class="btn sm subtle" data-act="hint">Xem gợi ý cách làm</button></div>' +
+    h += '<div class="row" style="margin-top:6px"><button type="button" class="btn sm subtle" data-act="hint">Gợi ý công thức</button></div>' +
          '<div class="q-hint" hidden><b>Gợi ý:</b> ' + fmtMath(opts.hintText) + '</div>';
   }
   h += '<div class="fb" hidden></div>';
@@ -691,7 +626,7 @@ function renderQ(q, displayIdx, opts){
   if (hintBtn && hintBox) {
     hintBtn.onclick = function(){
       hintBox.hidden = !hintBox.hidden;
-      hintBtn.textContent = hintBox.hidden ? 'Xem gợi ý cách làm' : 'Ẩn gợi ý';
+      hintBtn.textContent = hintBox.hidden ? 'Gợi ý công thức' : 'Ẩn gợi ý';
     };
   }
 
@@ -707,17 +642,14 @@ function renderQ(q, displayIdx, opts){
       if (q.o) ansLine = '<br>→ Đáp án đúng: <b>' + fmtMath(q.o[0]) + '</b>';
       else if (q.n != null) ansLine = '<br>→ Đáp số đúng: <b>' + fmtNum(q.n) + (q.u ? ' ' + esc(q.u) : '') + '</b>';
     }
-    var headText = ok ? '✓ Chính xác!' : (skipped ? 'Câu này chưa điền đáp án (0 điểm).' : '✕ Chưa đúng — xem hướng dẫn giải bên dưới:');
+    var headText = ok ? '✓ Chính xác!' : (skipped ? 'Chưa điền đáp án (0 điểm).' : '✕ Chưa đúng:');
     fb.innerHTML =
       '<div><b>' + headText + '</b> ' + ansLine + '</div>' +
-      (q.w ? '<div style="margin-top:5px"><b>Hướng dẫn giải:</b> ' + fmtMath(q.w) + '</div>' : '');
+      (q.w ? '<div style="margin-top:4px"><b>Giải thích:</b> ' + fmtMath(q.w) + '</div>' : '');
 
     box.querySelectorAll('.opt, input, [data-act="check"]').forEach(function(x){ x.disabled = true; });
     if (hintBtn) hintBtn.hidden = true;
-
-    if (!silent && typeof opts.onAnswer === 'function') {
-      opts.onAnswer(ok, answerState);
-    }
+    if (!silent && typeof opts.onAnswer === 'function') opts.onAnswer(ok, answerState);
   }
 
   if (choices) {
@@ -735,21 +667,15 @@ function renderQ(q, displayIdx, opts){
         var ok = val === q.o[0];
         b.classList.add(ok ? 'ok' : 'bad');
         if (!ok) {
-          optBtns.forEach(function(x){
-            if (x.dataset.val === q.o[0]) x.classList.add('ok');
-          });
+          optBtns.forEach(function(x){ if (x.dataset.val === q.o[0]) x.classList.add('ok'); });
         }
         applyResult(ok, { ok: ok, chosen: val }, false, false);
       };
     });
     if (!deferred && opts.savedAnswer) {
       optBtns.forEach(function(b){
-        if (b.dataset.val === opts.savedAnswer.chosen) {
-          b.classList.add(opts.savedAnswer.ok ? 'ok' : 'bad');
-        }
-        if (!opts.savedAnswer.ok && b.dataset.val === q.o[0]) {
-          b.classList.add('ok');
-        }
+        if (b.dataset.val === opts.savedAnswer.chosen) b.classList.add(opts.savedAnswer.ok ? 'ok' : 'bad');
+        if (!opts.savedAnswer.ok && b.dataset.val === q.o[0]) b.classList.add('ok');
       });
       applyResult(!!opts.savedAnswer.ok, opts.savedAnswer, true, false);
     }
@@ -757,14 +683,12 @@ function renderQ(q, displayIdx, opts){
     var inp = box.querySelector('input');
     var chk = box.querySelector('[data-act="check"]');
     if (deferred) {
-      inp.oninput = function(){
-        if (typeof opts.onSelect === 'function') opts.onSelect();
-      };
+      inp.oninput = function(){ if (typeof opts.onSelect === 'function') opts.onSelect(); };
     } else {
       chk.onclick = function(){
         var v = parseNumInput(inp.value, q.u);
         if (isNaN(v)) {
-          errEl.textContent = 'Bạn chỉ cần gõ con số kết quả thôi nhé (ví dụ: 2,5 hoặc 50), không cần gõ chữ.';
+          errEl.textContent = 'Chỉ cần nhập con số kết quả (ví dụ: 2,5 hoặc 50).';
           errEl.hidden = false;
           inp.focus();
           return;
@@ -810,7 +734,7 @@ function renderQ(q, displayIdx, opts){
   return box;
 }
 
-// Helper: strictly single-lesson snapshot (ZERO leakage from other lessons!)
+// --- Print Snapshot Builders ---
 function createFreshLessonSnapshot(topic, diffFilter, currentQuestions){
   var items = [];
   var src = (currentQuestions && currentQuestions.length)
@@ -822,17 +746,16 @@ function createFreshLessonSnapshot(topic, diffFilter, currentQuestions){
     items.push({ topicTitle: '', q: item.q });
   });
 
-  var diffNote = diffFilter && diffFilter !== 'all' ? ' · ' + DIFF[Number(diffFilter)] : ' · Chỉ gồm kiến thức bài này';
+  var diffNote = diffFilter && diffFilter !== 'all' ? ' · ' + DIFF[Number(diffFilter)] : '';
   return window.KHTNPrint.prepare({
     prefix: 'L' + topic.grade,
     docTitle: 'PHIẾU BÀI TẬP THEO BÀI – KHTN LỚP ' + topic.grade,
-    subtitle: topic.title + diffNote,
+    subtitle: (topic.chapCode ? topic.chapCode + ' · ' : '') + displayLessonTitle(topic) + diffNote,
     lesson: (!diffFilter || diffFilter === 'all') ? topic : null,
     items: items
   });
 }
 
-// Helper: STRICTLY scoped exam item builder
 function buildExamItems(exam, levelMode){
   var all = [];
   var seenQ = {};
@@ -858,8 +781,7 @@ function buildExamItems(exam, levelMode){
   if (mode === 'basic') {
     want1 = Math.round(target * 0.55);
     want2 = target - want1;
-    want3 = 0;
-    want4 = 0;
+    want3 = 0; want4 = 0;
   } else if (mode === 'advanced') {
     want1 = Math.max(1, Math.round(target * 0.10));
     want2 = Math.round(target * 0.25);
@@ -902,7 +824,7 @@ function collectExamProblemTypes(topicsList){
   (topicsList || []).forEach(function(tid){
     var t = byId[tid];
     if (t && TYPES[tid] && TYPES[tid].length) {
-      out.push({ title: t.title, types: TYPES[tid] });
+      out.push({ title: displayLessonTitle(t), types: TYPES[tid] });
     }
   });
   return out;
@@ -910,16 +832,16 @@ function collectExamProblemTypes(topicsList){
 
 function createFreshExamSnapshot(ex, levelMode){
   var m = levelMode || ex.presetLevel || 'standard';
-  var mTxt = m === 'basic' ? 'Mức Dễ – Lấy gốc' : (m === 'advanced' ? 'Mức Nâng cao' : 'Vừa sức trên lớp');
+  var mTxt = m === 'basic' ? 'Mức Cơ bản' : (m === 'advanced' ? 'Mức Nâng cao' : 'Chuẩn trên lớp');
   var picks = buildExamItems(ex, m);
   var snap = window.KHTNPrint.prepare({
     prefix: 'KT' + ex.grade,
     docTitle: ex.title.toUpperCase(),
-    subtitle: 'KHTN Lớp ' + ex.grade + ' · ' + ex.term + (ex.weeks ? ' (' + ex.weeks + ')' : '') + ' · ' + mTxt + ' · ' + ex.scope,
+    subtitle: 'KHTN Lớp ' + ex.grade + ' · ' + ex.term + (ex.weeks ? ' (' + ex.weeks + ')' : '') + ' · ' + mTxt,
     minutes: ex.minutes,
     isExam: true,
     problemTypes: collectExamProblemTypes(ex.topics),
-    items: picks.map(function(p){ return { topicTitle: p.t.title.replace(/^Bài \d+:\s*/, ''), q: p.q }; })
+    items: picks.map(function(p){ return { topicTitle: p.t.sgk || p.t.title, q: p.q }; })
   });
   quickExamSpecs[ex.id + '::' + m] = snap;
   return snap;
@@ -928,296 +850,6 @@ function createFreshExamSnapshot(ex, levelMode){
 function getOrCreateExamPrintSpec(ex, levelMode){
   var key = ex.id + '::' + (levelMode || ex.presetLevel || 'standard');
   return quickExamSpecs[key] || createFreshExamSnapshot(ex, levelMode);
-}
-
-// --- VIEW 1: Compact, Clean Home ---
-function home(){
-  updateNavActive('home');
-  var prog = loadProg();
-  var mistakes = loadMistakes();
-  var examStats = loadExams();
-  var mistakeCount = Object.keys(mistakes).length;
-  var completed = D.filter(function(t){ return isMastered(t.id); }).length;
-  var scores = Object.keys(prog).map(function(id){ return prog[id].best; }).filter(function(v){ return typeof v === 'number'; });
-  var avgScore = scores.length ? score10(scores.reduce(function(a,b){ return a+b; }, 0) / scores.length) : '—';
-  var examsDone = Object.keys(examStats).length;
-  var resume = getResumeTarget();
-  var resumeTopic = resume ? byId[resume.id] : null;
-  var chosenGrade = getPrefGrade();
-  var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-
-  function renderQuickActionsHtml(g){
-    var gLessons = D.filter(function(t){ return t.grade === g; }).length;
-    var gExams = EXAMS.filter(function(e){ return e.grade === g; }).length;
-    return (
-      '<a class="action-card act-learn" href="#/lop/' + g + '">' +
-        '<div class="act-head"><b>Học theo bài (Lớp ' + g + ')</b><span class="act-arrow">›</span></div>' +
-        '<span class="act-sub">' + gLessons + ' bài tóm tắt, dạng toán &amp; câu hỏi Dễ → Khó</span>' +
-      '</a>' +
-      '<a class="action-card act-exam" href="#/de-kiem-tra/' + g + '">' +
-        '<div class="act-head"><b>Đề kiểm tra 15p · GK · CK</b><span class="act-arrow">›</span></div>' +
-        '<span class="act-sub">' + gExams + ' đề theo đúng tuần học trên lớp</span>' +
-      '</a>' +
-      '<a class="action-card act-print" href="#/in-nhanh/' + g + '">' +
-        '<div class="act-head"><b>In đề giấy A4 &amp; PDF</b><span class="act-arrow">›</span></div>' +
-        '<span class="act-sub">Tách riêng tờ Đề bài và tờ Đáp án</span>' +
-      '</a>' +
-      '<a class="action-card act-ref" href="' + (mistakeCount ? '#/luyen-tap/cau-sai' : '#/so-tay') + '">' +
-        '<div class="act-head"><b>' + (mistakeCount ? ('Ôn lại ' + mistakeCount + ' câu sai') : 'Sổ tay công thức') + '</b><span class="act-arrow">›</span></div>' +
-        '<span class="act-sub">' + (mistakeCount ? 'Rèn lại các câu chưa vững để nhớ bài' : 'Giải thích rõ kí hiệu &amp; đơn vị đo') + '</span>' +
-      '</a>'
-    );
-  }
-
-  var h =
-    '<section class="quick-box" aria-label="Bảng chọn nhanh SciBook">' +
-      '<div class="home-top-grid">' +
-        '<div class="home-title-wrap">' +
-          '<h1>SciBook</h1>' +
-          '<p>Sổ tay tự học, tra cứu công thức &amp; luyện đề Khoa học tự nhiên Lớp 6 – 9</p>' +
-        '</div>' +
-        '<div>' +
-          '<div class="search-bar-row">' +
-            '<input type="search" id="home-search" placeholder="Tìm bài học, công thức (VD: mol, tốc độ, áp suất...)" aria-label="Tìm bài học hoặc công thức">' +
-            (SpeechRec ? '<button type="button" class="mic-btn" id="home-mic-btn">Giọng nói</button>' : '') +
-          '</div>' +
-          '<div class="quick-chips">' +
-            '<span class="muted" style="font-size:.77rem">Gợi ý:</span>' +
-            '<button type="button" class="chip" data-q="mol">Mol 8</button>' +
-            '<button type="button" class="chip" data-q="áp suất">Áp suất 8</button>' +
-            '<button type="button" class="chip" data-q="tốc độ">Tốc độ 7</button>' +
-            '<button type="button" class="chip" data-q="hóa trị">Hóa trị 7</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-      '<div id="home-search-out" class="search-results" hidden style="margin-bottom:12px"></div>' +
-
-      '<div class="home-grade-row">' +
-        '<div class="grade-pills" id="home-grade-pills" role="tablist" aria-label="Chọn khối lớp">' +
-          [6,7,8,9].map(function(gr){
-            var lc = D.filter(function(t){ return t.grade === gr; }).length;
-            var ec = EXAMS.filter(function(e){ return e.grade === gr; }).length;
-            return '<button type="button" class="grade-pill ' + (chosenGrade === gr ? 'on' : '') + '" data-g="' + gr + '">' +
-              '<b>Lớp ' + gr + '</b><small>' + lc + ' bài · ' + ec + ' đề</small></button>';
-          }).join('') +
-        '</div>' +
-        '<span class="muted" id="step2-title" style="font-size:.82rem">Đang chọn: <b>Lớp ' + chosenGrade + '</b></span>' +
-      '</div>' +
-
-      '<div class="action-grid" id="home-actions">' +
-        renderQuickActionsHtml(chosenGrade) +
-      '</div>' +
-    '</section>';
-
-  // Compact 1-row Resume + Progress Strip
-  h += '<div class="status-strip">';
-  if (resumeTopic) {
-    h +=
-      '<div class="status-resume">' +
-        '<span class="badge pri">Học tiếp</span>' +
-        tag(resumeTopic.subj) +
-        '<a href="#/bai/' + resumeTopic.id + '">Lớp ' + resumeTopic.grade + ' – ' + esc(resumeTopic.title) + ' ›</a>' +
-      '</div>';
-  } else {
-    h += '<div class="status-resume"><span class="muted">Chọn một bài học bất kỳ để bắt đầu.</span></div>';
-  }
-  h +=
-    '<div class="status-metrics">' +
-      '<span>Đã vững: <b>' + completed + '/' + D.length + '</b> bài</span>' +
-      '<span>·</span>' +
-      '<span>Đề đã làm: <b>' + examsDone + '</b></span>' +
-      '<span>·</span>' +
-      '<span>Điểm TB: <b>' + avgScore + '</b></span>' +
-      (mistakeCount ? '<span>·</span><a href="#/luyen-tap/cau-sai" style="font-weight:600">Câu sai (' + mistakeCount + ')</a>' : '') +
-      '<span>·</span>' +
-      '<a href="#/tien-do" style="font-weight:600">Sổ điểm ›</a>' +
-    '</div>' +
-  '</div>';
-
-  // Compact Bookshelf 4 Volumes
-  h += '<h2 style="margin-top:.2em">Tủ sách theo khối lớp (GDPT 2018)</h2><div class="vol-grid">';
-  [6,7,8,9].forEach(function(g){
-    var l = D.filter(function(t){ return t.grade === g; });
-    var exCount = EXAMS.filter(function(ex){ return ex.grade === g; }).length;
-    var p = pct(l);
-    var totalQ = BANK ? BANK.estimateTotalQuestions(l) : l.reduce(function(s,t){ return s + t.questions.length; }, 0);
-    h +=
-      '<a class="vol-card v' + g + '" href="#/lop/' + g + '">' +
-        '<div class="row between"><span class="vol-label">Khối ' + g + '</span><span class="badge ' + ((g === 7 || g === 8) ? 'pri' : (p === 100 ? 'ok' : '')) + '">' + ((g === 7 || g === 8) ? '4 giai đoạn' : p + '%') + '</span></div>' +
-        '<h3 style="margin:.25em 0 .15em;font-size:1.05rem">KHTN Lớp ' + g + '</h3>' +
-        '<div class="muted" style="font-size:.82rem">' + l.length + ' bài · ' + totalQ + '+ câu · ' + exCount + ' đề KT</div>' +
-        '<div class="bar" style="height:6px;margin:7px 0 5px"><i style="width:' + p + '%"></i></div>' +
-        '<small class="muted" style="font-size:.77rem">Đã vững ' + l.filter(function(t){ return isMastered(t.id); }).length + '/' + l.length + ' bài (' + p + '%)</small>' +
-      '</a>';
-  });
-  h += '</div>';
-
-  app.innerHTML = h;
-
-  // Wire Grade Pills
-  var pillsWrap = document.getElementById('home-grade-pills');
-  var actionsWrap = document.getElementById('home-actions');
-  var step2Title = document.getElementById('step2-title');
-  pillsWrap.querySelectorAll('.grade-pill').forEach(function(btn){
-    btn.onclick = function(){
-      chosenGrade = Number(btn.dataset.g);
-      setPrefGrade(chosenGrade);
-      pillsWrap.querySelectorAll('.grade-pill').forEach(function(x){ x.classList.toggle('on', x === btn); });
-      step2Title.innerHTML = 'Đang chọn: <b>Lớp ' + chosenGrade + '</b>';
-      actionsWrap.innerHTML = renderQuickActionsHtml(chosenGrade);
-    };
-  });
-
-  // Wire Instant Search + Voice Recognition
-  var sInput = document.getElementById('home-search');
-  var sOut = document.getElementById('home-search-out');
-
-  function runHomeSearch(raw){
-    var q = normVi(raw);
-    if (!q) {
-      sOut.hidden = true;
-      sOut.innerHTML = '';
-      return;
-    }
-    var matchedTopics = D.filter(function(t){
-      return normVi(t.title + ' ' + 'lop ' + t.grade + ' ' + t.formulas.join(' ') + ' ' + t.theory.join(' ')).indexOf(q) > -1;
-    }).slice(0, 6);
-
-    var matchedExams = EXAMS.filter(function(ex){
-      return normVi(ex.title + ' lop ' + ex.grade + ' ' + ex.scope).indexOf(q) > -1;
-    }).slice(0, 4);
-
-    if (!matchedTopics.length && !matchedExams.length) {
-      sOut.hidden = false;
-      sOut.innerHTML = '<div class="empty" style="padding:10px">Không tìm thấy nội dung khớp từ khóa <b>"' + esc(raw) + '"</b>. Thử gõ ngắn hơn như <b>mol</b>, <b>điện</b>, <b>tốc độ</b>.</div>';
-      return;
-    }
-
-    var rows = '';
-    matchedTopics.forEach(function(t){
-      var singleEx = EXAMS.find(function(e){ return e.topics.length === 1 && e.topics[0] === t.id; });
-      rows +=
-        '<div class="s-item">' +
-          '<div>' + tag(t.subj) + ' <b>Lớp ' + t.grade + ' – ' + esc(t.title) + '</b>' +
-            (t.weeks ? ' <small class="muted">(' + esc(t.weeks) + ')</small>' : '') +
-          '</div>' +
-          '<div class="row">' +
-            '<a class="btn sm" href="#/bai/' + t.id + '">Học bài</a>' +
-            (singleEx ? '<a class="btn sm alt" href="#/lam-de/' + singleEx.id + '">Đề 15p</a>' : '') +
-          '</div>' +
-        '</div>';
-    });
-    matchedExams.forEach(function(ex){
-      rows +=
-        '<div class="s-item">' +
-          '<div><span class="badge pri">Đề KT Lớp ' + ex.grade + '</span> <b>' + esc(ex.title) + '</b> <small class="muted">(' + ex.minutes + ' phút)</small></div>' +
-          '<div class="row">' +
-            '<a class="btn sm" href="#/lam-de/' + ex.id + '">Làm đề</a>' +
-          '</div>' +
-        '</div>';
-    });
-    sOut.hidden = false;
-    sOut.innerHTML = rows;
-  }
-
-  sInput.oninput = function(){ runHomeSearch(sInput.value); };
-  app.querySelectorAll('[data-q]').forEach(function(chip){
-    chip.onclick = function(){
-      sInput.value = chip.dataset.q;
-      runHomeSearch(chip.dataset.q);
-    };
-  });
-
-  var micBtn = document.getElementById('home-mic-btn');
-  if (micBtn && SpeechRec) {
-    var rec = null;
-    micBtn.onclick = function(){
-      if (rec) {
-        try { rec.stop(); } catch (e) {}
-        return;
-      }
-      try {
-        rec = new SpeechRec();
-        rec.lang = 'vi-VN';
-        rec.interimResults = false;
-        rec.maxAlternatives = 1;
-        micBtn.classList.add('listening');
-        micBtn.textContent = 'Đang nghe…';
-        rec.onresult = function(ev){
-          var txt = ev.results && ev.results[0] && ev.results[0][0] ? ev.results[0][0].transcript : '';
-          if (txt) {
-            sInput.value = txt;
-            runHomeSearch(txt);
-            showToast('Đã nhận diện: "' + txt + '"');
-          }
-        };
-        rec.onerror = function(){
-          showToast('Chưa nhận diện được giọng nói. Bạn có thể nhập từ khóa trực tiếp vào ô tìm kiếm.');
-        };
-        rec.onend = function(){
-          micBtn.classList.remove('listening');
-          micBtn.textContent = 'Giọng nói';
-          rec = null;
-        };
-        rec.start();
-      } catch (e) {
-        micBtn.classList.remove('listening');
-        rec = null;
-      }
-    };
-  }
-}
-
-// --- Stage-Based Exam Explorer Renderer ---
-var EXAM_STAGE_FILTERS = [
-  { key:'all', label:'Cả năm (4 giai đoạn)' },
-  { key:'s1',  label:'Đầu HK1 → Giữa kì I' },
-  { key:'s2',  label:'Sau GK1 → Cuối kì I' },
-  { key:'s3',  label:'Đầu HK2 → Giữa kì II' },
-  { key:'s4',  label:'Sau GK2 → Cuối kì II' },
-  { key:'15p', label:'Chỉ đề 15 phút' },
-  { key:'gkck',label:'Chỉ đề Giữa kì & Cuối kì' }
-];
-
-function matchStageFilter(ex, fKey){
-  if (!fKey || fKey === 'all') return true;
-  if (fKey === 's1') return ex.stage === 1;
-  if (fKey === 's2') return ex.stage === 2;
-  if (fKey === 's3') return ex.stage === 3;
-  if (fKey === 's4') return ex.stage === 4;
-  if (fKey === '15p') return ex.kind === '15p';
-  if (fKey === 'gkck') return ex.kind === 'gk' || ex.kind === 'ck';
-  return true;
-}
-
-function renderExamCardHtml(ex, saved){
-  var st = saved[ex.id];
-  var stageTag = (ex.stage === 1 || ex.stage === 3) ? 'Trước Giữa kì' : 'Sau Giữa kì';
-  var colBadge = ex.kind === 'gk'
-    ? '<span class="badge warn">Đề Giữa học kì</span>'
-    : (ex.kind === 'ck'
-      ? '<span class="badge d4">Đề Cuối học kì</span>'
-      : (ex.col
-        ? '<span class="badge pri">Kiểm tra 15p · ' + stageTag + '</span>'
-        : (ex.kind === '15p'
-          ? '<span class="badge ok">15p theo bài · ' + stageTag + '</span>'
-          : '<span class="badge">Đề ôn tổng hợp</span>')));
-
-  return (
-    '<div class="card">' +
-      '<div class="row between">' +
-        colBadge +
-        '<span class="badge">' + (ex.weeks ? esc(ex.weeks) + ' · ' : '') + ex.minutes + ' phút · ' + ex.count + ' câu</span>' +
-      '</div>' +
-      '<h3 style="margin:.5em 0 .2em;font-size:1.06rem">' + esc(ex.title) + '</h3>' +
-      '<div class="muted" style="font-size:.89rem;margin-bottom:10px">' + esc(ex.scope) + '</div>' +
-      (st ? '<div class="' + (st.best >= 0.65 ? 'done' : 'muted') + '" style="font-size:.89rem;margin-bottom:10px">Điểm cao nhất: ' + score10(st.best) + '/10 · Gần nhất: ' + score10(st.last) + '/10 (' + st.attempts + ' lần làm)</div>' : '') +
-      '<div class="row">' +
-        '<a class="btn sm" href="#/lam-de/' + ex.id + '">Làm đề ngay ›</a>' +
-        '<button type="button" class="btn sm alt" data-print-both="' + ex.id + '">In Đề + Đáp án</button>' +
-      '</div>' +
-    '</div>'
-  );
 }
 
 function wirePrintButtons(rootEl){
@@ -1230,30 +862,54 @@ function wirePrintButtons(rootEl){
       });
     };
   });
-  rootEl.querySelectorAll('[data-print-quiz]').forEach(function(b){
-    b.onclick = function(){
-      var ex = examById[b.getAttribute('data-print-quiz')];
-      if (!ex) return;
-      window.KHTNPrint.open(getOrCreateExamPrintSpec(ex), 'quiz', {
-        onRegenerate: function(){ return createFreshExamSnapshot(ex); }
-      });
-    };
-  });
-  rootEl.querySelectorAll('[data-print-key]').forEach(function(b){
-    b.onclick = function(){
-      var ex = examById[b.getAttribute('data-print-key')];
-      if (!ex) return;
-      window.KHTNPrint.open(getOrCreateExamPrintSpec(ex), 'key', {
-        onRegenerate: function(){ return createFreshExamSnapshot(ex); }
-      });
-    };
-  });
+}
+
+function renderExamCardHtml(ex, saved){
+  var st = saved[ex.id];
+  var kindBadge = ex.kind === 'gk'
+    ? '<span class="badge warn">Kiểm tra Giữa kì</span>'
+    : (ex.kind === 'ck'
+      ? '<span class="badge d4">Kiểm tra Cuối kì</span>'
+      : (ex.kind === '15p'
+        ? '<span class="badge pri">Đề 15 phút</span>'
+        : '<span class="badge">Đề tổng hợp</span>'));
+
+  return (
+    '<div class="card">' +
+      '<div class="row between">' +
+        kindBadge +
+        '<span class="badge">' + (ex.weeks ? esc(ex.weeks) + ' · ' : '') + ex.minutes + 'p · ' + ex.count + ' câu</span>' +
+      '</div>' +
+      '<h3 style="margin:.45em 0 .2em">' + esc(ex.title) + '</h3>' +
+      '<div class="muted" style="font-size:.86rem;margin-bottom:9px">' + esc(ex.scope) + '</div>' +
+      (st ? '<div class="' + (st.best >= 0.65 ? 'done' : 'muted') + '" style="font-size:.85rem;margin-bottom:9px">Điểm cao nhất: ' + score10(st.best) + '/10 (' + st.attempts + ' lần)</div>' : '') +
+      '<div class="row">' +
+        '<a class="btn sm" href="#/lam-de/' + ex.id + '">Làm đề ›</a>' +
+        '<button type="button" class="btn sm alt" data-print-both="' + ex.id + '">In PDF</button>' +
+      '</div>' +
+    '</div>'
+  );
 }
 
 function mountExamExplorer(containerEl, g, initialFilter){
   var fKey = initialFilter || 'all';
   var examsAll = EXAMS.filter(function(ex){ return ex.grade === g; });
   var saved = loadExams();
+  var filters = [
+    { key:'all', label:'Cả năm' },
+    { key:'hk1', label:'Học kì I' },
+    { key:'hk2', label:'Học kì II' },
+    { key:'15p', label:'Đề 15 phút' },
+    { key:'gkck', label:'Giữa kì & Cuối kì' }
+  ];
+  function matchF(ex, k){
+    if (!k || k === 'all') return true;
+    if (k === 'hk1') return ex.term === 'HK1';
+    if (k === 'hk2') return ex.term === 'HK2';
+    if (k === '15p') return ex.kind === '15p';
+    if (k === 'gkck') return ex.kind === 'gk' || ex.kind === 'ck';
+    return true;
+  }
 
   function render(){
     if (!examsAll.length) {
@@ -1261,27 +917,19 @@ function mountExamExplorer(containerEl, g, initialFilter){
       return;
     }
     var h = '<div class="filters" id="ex-stage-bar">' +
-      EXAM_STAGE_FILTERS.filter(function(f){
-        return f.key === 'all' || examsAll.some(function(ex){ return matchStageFilter(ex, f.key); });
-      }).map(function(f){
-        var cnt = examsAll.filter(function(ex){ return matchStageFilter(ex, f.key); }).length;
+      filters.map(function(f){
+        var cnt = examsAll.filter(function(ex){ return matchF(ex, f.key); }).length;
         return '<button type="button" data-ef="' + f.key + '" class="' + (fKey === f.key ? 'on' : '') + '">' + f.label + ' (' + cnt + ')</button>';
-      }).join('') +
-      '</div>';
+      }).join('') + '</div>';
 
     [1, 2, 3, 4, 5].forEach(function(stNum){
-      var group = examsAll.filter(function(ex){
-        return (ex.stage || 1) === stNum && matchStageFilter(ex, fKey);
-      });
+      var group = examsAll.filter(function(ex){ return (ex.stage || 1) === stNum && matchF(ex, fKey); });
       if (!group.length) return;
       var sm = STAGE_META[stNum];
       h +=
         '<div class="stage-block ' + (sm.term === 'HK2' ? 'hk2' : '') + '">' +
           '<h2 style="margin-top:0">' + esc(sm.title) + '</h2>' +
-          '<p class="muted" style="margin:.2em 0 .9em;font-size:.9rem">' + esc(sm.note) + '</p>' +
-          '<div class="grid two">' +
-            group.map(function(ex){ return renderExamCardHtml(ex, saved); }).join('') +
-          '</div>' +
+          '<div class="grid two">' + group.map(function(ex){ return renderExamCardHtml(ex, saved); }).join('') + '</div>' +
         '</div>';
     });
 
@@ -1291,185 +939,340 @@ function mountExamExplorer(containerEl, g, initialFilter){
     });
     wirePrintButtons(containerEl);
   }
-
   render();
 }
 
-// --- VIEW 2: Grade ---
-function grade(g, activeTab){
-  if ([6,7,8,9].indexOf(g) === -1) {
-    updateNavActive('home');
-    app.innerHTML = '<div class="empty"><p>Không có dữ liệu cho lớp này.</p><a class="btn" href="#/">Về trang chủ</a></div>';
-    return;
-  }
+// ============================================================================
+// VIEW 1 & 2 UNIFIED: CLEAN TEXTBOOK TABLE OF CONTENTS (MỤC LỤC SÁCH GIÁO KHOA)
+// ============================================================================
+function bookToc(g, initialMode){
+  if ([6,7,8,9].indexOf(g) === -1) g = getPrefGrade();
   setPrefGrade(g);
-  updateNavActive('lop-' + g);
-  var hasStages = (g === 7 || g === 8);
-  var tab = activeTab === 'exams' ? 'exams' : (hasStages ? 'roadmap' : 'lessons');
-  var filterSubj = 'all';
-  var searchText = '';
+  updateNavActive('home');
 
-  var list = D.filter(function(t){ return t.grade === g; }).slice().sort(function(a, b){
-    return (a.order || 99) - (b.order || 99);
-  });
-  var gExams = EXAMS.filter(function(ex){ return ex.grade === g; });
-  var presentSubjs = Object.keys(SUBJ).filter(function(s){
-    return list.some(function(t){ return t.subj === s; });
-  });
+  var mode = initialMode === 'exams' ? 'exams' : 'toc';
+  var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  var meta = loadMeta();
+  var recentTopic = meta.lastLessonId && byId[meta.lastLessonId] ? byId[meta.lastLessonId] : null;
+  var mistakeCount = Object.keys(loadMistakes()).length;
 
-  function renderLessonCard(t){
-    var b = best(t.id);
-    var poolCount = getTopicPool(t, 4).length;
-    return (
-      '<a class="card" href="#/bai/' + t.id + '">' +
-        '<div class="row between">' +
-          '<div class="row" style="gap:5px">' + tag(t.subj) + (t.weeks ? '<span class="badge">' + esc(t.weeks) + '</span>' : '') + '</div>' +
-          (b != null && b >= 0.67 ? '<span class="badge ok">✓ Đã vững</span>' : '<span class="badge pri">Học bài ›</span>') +
-        '</div>' +
-        '<h3 style="margin:.45em 0 .25em;font-size:1.04rem">' + esc(t.title) + '</h3>' +
-        '<div class="muted" style="font-size:.86rem">' + (t.periods ? t.periods + ' tiết · ' : '') + poolCount + '+ câu hỏi từ Dễ → Khó</div>' +
-        (b == null ? '' : '<div style="margin-top:6px;font-size:.89rem" class="' + (b >= 0.67 ? 'done' : 'muted') + '">Điểm cao nhất: ' + score10(b) + '/10</div>') +
-      '</a>'
-    );
+  function openGradeFormulaPrint(gradeNum){
+    var TYPES = window.KHTN_TYPES || {};
+    var gList = getSortedGradeLessons(gradeNum);
+    var spec = window.KHTNPrint.prepare({
+      prefix: 'ST' + gradeNum,
+      subtitle: 'Tóm tắt công thức & dạng bài KHTN Lớp ' + gradeNum + ' (Bộ SGK thống nhất)',
+      formulaGroups: gList.map(function(t){
+        return { grade: t.grade, title: (t.chapCode ? t.chapCode + ' · ' : '') + displayLessonTitle(t), formulas: t.formulas, types: TYPES[t.id] || null };
+      })
+    });
+    window.KHTNPrint.open(spec, 'formulas');
   }
 
-  function renderView(){
-    var h =
-      '<div class="crumb"><a href="#/">Trang chủ</a> › Lớp ' + g + '</div>' +
-      '<div class="row between">' +
-        '<h1>Bài học &amp; Đề kiểm tra KHTN Lớp ' + g + '</h1>' +
-        '<div class="row">' +
-          '<button type="button" class="btn sm alt" id="g-print-formulas">In Sổ tay công thức lớp ' + g + '</button>' +
-          '<a class="btn sm subtle" href="#/in-nhanh/' + g + '">Kho đề in giấy A4</a>' +
-          '<a class="btn sm subtle" href="#/kiem-tra/' + g + '">Kiểm tra gốc</a>' +
-        '</div>' +
-      '</div>' +
-      '<div class="helper-tip">' +
-        '<span><b>Gợi ý lộ trình:</b> Mở bài đang học trên lớp → xem tóm tắt &amp; dạng bài mẫu → làm câu hỏi từ Dễ đến Khó → làm đề 15 phút của bài đó.</span>' +
-        '<div class="row">' +
-          [6,7,8,9].map(function(gr){
-            return '<a class="btn sm ' + (gr === g ? 'on' : 'subtle') + '" href="#/lop/' + gr + '">Lớp ' + gr + '</a>';
-          }).join('') +
-        '</div>' +
-      '</div>' +
-      '<div id="gb-slot"></div>' +
-      '<div class="tabs">' +
-        (hasStages ? '<button type="button" data-gtab="roadmap" class="' + (tab === 'roadmap' ? 'on' : '') + '">Theo thứ tự tuần học</button>' : '') +
-        '<button type="button" data-gtab="lessons" class="' + (tab === 'lessons' ? 'on' : '') + '">Danh sách bài (' + list.length + ')</button>' +
-        '<button type="button" data-gtab="exams" class="' + (tab === 'exams' ? 'on' : '') + '">Đề kiểm tra (' + gExams.length + ')</button>' +
-      '</div>' +
-      '<div id="g-body"></div>';
-
-    app.innerHTML = h;
-    mountGradebookWidget(document.getElementById('gb-slot'), g);
-
-    document.getElementById('g-print-formulas').onclick = function(){
-      var TYPES = window.KHTN_TYPES || {};
-      var spec = window.KHTNPrint.prepare({
-        prefix: 'ST' + g,
-        subtitle: 'Toàn bộ công thức & các dạng bài trọng tâm KHTN Lớp ' + g + ' (GDPT 2018)',
-        formulaGroups: list.map(function(t){ return { grade: t.grade, title: t.title, formulas: t.formulas, types: TYPES[t.id] || null }; })
-      });
-      window.KHTNPrint.open(spec, 'formulas');
-    };
-
-    app.querySelectorAll('[data-gtab]').forEach(function(b){
-      b.onclick = function(){ tab = b.dataset.gtab; renderView(); };
-    });
-
-    var bodyEl = document.getElementById('g-body');
+  function buildTocBodyHtml(gradeNum){
+    var lessons = getSortedGradeLessons(gradeNum);
+    var gExams = EXAMS.filter(function(ex){ return ex.grade === gradeNum; });
     var savedEx = loadExams();
 
-    if (tab === 'roadmap') {
-      var rHtml = '';
-      [1, 2, 3, 4].forEach(function(stNum){
-        var stLessons = list.filter(function(t){ return t.stage === stNum; });
-        var stExams = gExams.filter(function(ex){ return ex.stage === stNum; });
-        var sm = STAGE_META[stNum];
-        rHtml +=
-          '<section class="stage-block ' + (sm.term === 'HK2' ? 'hk2' : '') + '">' +
-            '<h2 style="margin-top:0">' + esc(sm.title) + '</h2>' +
-            '<p class="muted" style="margin:.2em 0 .8em;font-size:.9rem">' + esc(sm.note) + '</p>' +
-            '<h3>1. Bài học trên lớp (' + stLessons.length + ' bài)</h3>' +
-            '<div class="grid">' + stLessons.map(renderLessonCard).join('') + '</div>' +
-            '<h3 style="margin-top:14px">2. Đề kiểm tra 15 phút &amp; Giữa kì / Cuối kì (' + stExams.length + ' đề)</h3>' +
-            '<div class="grid two">' + stExams.map(function(ex){ return renderExamCardHtml(ex, savedEx); }).join('') + '</div>' +
-          '</section>';
+    function renderStageChapters(stageNum){
+      var stLessons = lessons.filter(function(t){ return (t.stage || 1) === stageNum; });
+      if (!stLessons.length) return '';
+
+      var chapters = [];
+      var chapMap = {};
+      stLessons.forEach(function(t){
+        var key = (t.chapCode || '') + '::' + (t.chapTitle || '');
+        if (!chapMap[key]) {
+          chapMap[key] = { chapCode: t.chapCode || '', chapTitle: t.chapTitle || '', subj: t.subj, items: [] };
+          chapters.push(chapMap[key]);
+        }
+        chapMap[key].items.push(t);
       });
-      bodyEl.innerHTML = rHtml;
-      wirePrintButtons(bodyEl);
-    } else if (tab === 'lessons') {
-      bodyEl.innerHTML =
-        '<input type="search" id="g-search" placeholder="Nhập tên bài hoặc công thức lớp ' + g + ' cần tìm…" value="' + esc(searchText) + '">' +
-        '<div class="filters" id="g-subj">' +
-          '<button type="button" data-s="all" class="' + (filterSubj === 'all' ? 'on' : '') + '">Tất cả (' + list.length + ')</button>' +
-          presentSubjs.map(function(s){
-            var cnt = list.filter(function(t){ return t.subj === s; }).length;
-            return '<button type="button" data-s="' + s + '" class="' + (filterSubj === s ? 'on' : '') + '">' + SUBJ[s] + ' (' + cnt + ')</button>';
+
+      var out = '';
+      chapters.forEach(function(ch){
+        out +=
+          '<div class="toc-chapter">' +
+            '<div class="toc-chap-head">' +
+              '<div class="toc-chap-title">' +
+                (ch.chapCode ? '<em>' + esc(ch.chapCode) + '.</em> ' : '') + esc(ch.chapTitle) +
+              '</div>' +
+              tag(ch.subj) +
+            '</div>';
+
+        ch.items.forEach(function(t){
+          var b = best(t.id);
+          var rightTxt = b != null
+            ? ((b >= 0.67 ? '✓ ' : '') + score10(b) + 'đ')
+            : 'Mở bài ›';
+          var rightCls = (b != null && b >= 0.67) ? 'toc-right done' : 'toc-right';
+
+          out +=
+            '<a class="toc-item" href="#/bai/' + t.id + '">' +
+              '<span class="toc-item-left">' +
+                (t.sgk ? '<span class="toc-sgk">' + esc(t.sgk) + '</span>' : '') +
+                '<span class="toc-name">' + esc(t.title) + '</span>' +
+              '</span>' +
+              '<span class="toc-dots" aria-hidden="true"></span>' +
+              '<span class="' + rightCls + '">' + rightTxt + '</span>' +
+            '</a>';
+        });
+        out += '</div>';
+      });
+
+      // Milestone checkpoint at the end of this stage (15p quizzes + Giữa kì / Cuối kì)
+      var stQuizzes = gExams.filter(function(ex){ return ex.stage === stageNum && ex.kind === '15p' && ex.col; });
+      var milestoneEx = gExams.find(function(ex){ return ex.stage === stageNum && (ex.kind === 'gk' || ex.kind === 'ck'); });
+      if (milestoneEx || stQuizzes.length) {
+        var msStat = milestoneEx && savedEx[milestoneEx.id] ? ' (' + score10(savedEx[milestoneEx.id].best) + 'đ)' : '';
+        out +=
+          '<div class="toc-milestone">' +
+            '<div class="toc-ms-main">' +
+              (stQuizzes.length
+                ? '<div class="toc-ms-quiz-links">' +
+                    stQuizzes.map(function(qx){
+                      var qDone = savedEx[qx.id] ? ' · ' + score10(savedEx[qx.id].best) + 'đ' : '';
+                      return '<a class="toc-ms-pill" href="#/lam-de/' + qx.id + '">' + esc(qx.weeks ? '15p ' + qx.weeks : 'Đề 15p') + qDone + ' ›</a>';
+                    }).join('') +
+                  '</div>'
+                : '') +
+              (milestoneEx
+                ? '<b>★ ' + esc(milestoneEx.title) + msStat + '</b>'
+                : '') +
+            '</div>' +
+            (milestoneEx
+              ? '<div class="row">' +
+                  '<a class="btn sm" href="#/lam-de/' + milestoneEx.id + '">Làm đề ' + milestoneEx.minutes + 'p ›</a>' +
+                  '<button type="button" class="btn sm alt" data-print-both="' + milestoneEx.id + '">In PDF</button>' +
+                '</div>'
+              : '') +
+          '</div>';
+      }
+      return out;
+    }
+
+    var hk1Lessons = lessons.filter(function(t){ return t.term !== 'HK2'; });
+    var hk2Lessons = lessons.filter(function(t){ return t.term === 'HK2'; });
+
+    var html =
+      '<section class="toc-term">' +
+        '<div class="toc-term-head">' +
+          '<strong>Phần I · Học kì I</strong>' +
+          '<span>Đã vững ' + hk1Lessons.filter(function(t){ return isMastered(t.id); }).length + '/' + hk1Lessons.length + ' bài</span>' +
+        '</div>' +
+        renderStageChapters(1) +
+        renderStageChapters(2) +
+      '</section>' +
+      '<section class="toc-term">' +
+        '<div class="toc-term-head hk2">' +
+          '<strong>Phần II · Học kì II</strong>' +
+          '<span>Đã vững ' + hk2Lessons.filter(function(t){ return isMastered(t.id); }).length + '/' + hk2Lessons.length + ' bài</span>' +
+        '</div>' +
+        renderStageChapters(3) +
+        renderStageChapters(4) +
+      '</section>';
+
+    return html;
+  }
+
+  function renderPage(){
+    var lessons = getSortedGradeLessons(g);
+    var gExams = EXAMS.filter(function(ex){ return ex.grade === g; });
+    var doneCnt = lessons.filter(function(t){ return isMastered(t.id); }).length;
+    var pdfUrl = SGK_PDF_URLS[g];
+
+    var h =
+      '<div class="toc-header">' +
+        '<div>' +
+          '<div class="toc-eyebrow">Bộ SGK Thống nhất toàn quốc · Kết nối tri thức với cuộc sống</div>' +
+          '<h1>Mục lục Khoa học tự nhiên – Lớp ' + g + '</h1>' +
+          '<div class="toc-sub">' +
+            '<span>' + esc(GRADE_SGK_INFO[g] || '') + '</span>' +
+            '<span>·</span>' +
+            '<span>Đã vững <b>' + doneCnt + '/' + lessons.length + '</b> mục (' + pct(lessons) + '%)</span>' +
+            (pdfUrl ? '<a class="toc-pdf-link" href="' + esc(pdfUrl) + '" target="_blank" rel="noopener">SGK PDF Lớp ' + g + ' ↗</a>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="toc-grades" role="tablist" aria-label="Chọn khối lớp">' +
+          [6,7,8,9].map(function(gr){
+            return '<button type="button" class="toc-grade-btn ' + (gr === g ? 'on' : '') + '" data-switch-g="' + gr + '">Lớp ' + gr + '</button>';
           }).join('') +
         '</div>' +
-        '<div id="g-cards"></div>';
+      '</div>';
 
-      function refreshCards(){
-        var q = normVi(searchText);
-        var filtered = list.filter(function(t){
-          if (filterSubj !== 'all' && t.subj !== filterSubj) return false;
-          if (q && normVi(t.title + ' ' + t.formulas.join(' ')).indexOf(q) === -1) return false;
-          return true;
-        });
-        document.getElementById('g-cards').innerHTML = filtered.length
-          ? '<div class="grid">' + filtered.map(renderLessonCard).join('') + '</div>'
-          : '<div class="empty">Không tìm thấy bài phù hợp.</div>';
+    if (recentTopic || mistakeCount > 0) {
+      h += '<div class="toc-bookmark">';
+      if (recentTopic) {
+        h += '<div>Đang học gần đây: <a href="#/bai/' + recentTopic.id + '">Lớp ' + recentTopic.grade + ' · ' + esc(displayLessonTitle(recentTopic)) + ' ›</a></div>';
+      } else {
+        h += '<div class="muted">Chọn bài trong mục lục bên dưới để xem lý thuyết &amp; luyện tập.</div>';
       }
-      refreshCards();
-      bodyEl.querySelectorAll('#g-subj button').forEach(function(b){
-        b.onclick = function(){
-          filterSubj = b.dataset.s;
-          bodyEl.querySelectorAll('#g-subj button').forEach(function(x){ x.classList.toggle('on', x === b); });
-          refreshCards();
-        };
-      });
-      document.getElementById('g-search').oninput = function(e){ searchText = e.target.value; refreshCards(); };
+      if (mistakeCount > 0) {
+        h += '<a href="#/luyen-tap/cau-sai">Ôn lại ' + mistakeCount + ' câu sai ›</a>';
+      }
+      h += '</div>';
+    }
+
+    h +=
+      '<div class="toc-toolbar">' +
+        '<div class="toc-search-wrap">' +
+          '<input type="search" id="toc-search" placeholder="Tìm nhanh chương, bài, công thức (VD: mol, hóa trị, thấu kính...)" aria-label="Tìm bài học hoặc công thức">' +
+          (SpeechRec ? '<button type="button" class="mic-btn" id="toc-mic">Giọng nói</button>' : '') +
+        '</div>' +
+        '<div class="toc-mode-switch">' +
+          '<button type="button" class="btn sm ' + (mode === 'toc' ? 'on' : 'subtle') + '" data-mode="toc">Mục lục bài học</button>' +
+          '<button type="button" class="btn sm ' + (mode === 'exams' ? 'on' : 'subtle') + '" data-mode="exams">Đề kiểm tra (' + gExams.length + ')</button>' +
+          '<button type="button" class="btn sm alt" id="toc-print-formulas">In công thức</button>' +
+        '</div>' +
+      '</div>' +
+      '<div id="toc-search-out" class="search-results" hidden></div>' +
+      '<div id="toc-main-body"></div>';
+
+    app.innerHTML = h;
+
+    // Grade switcher
+    app.querySelectorAll('[data-switch-g]').forEach(function(btn){
+      btn.onclick = function(){
+        g = Number(btn.dataset.switchG);
+        setPrefGrade(g);
+        if (location.hash.indexOf('#/lop/') === 0) {
+          history.replaceState(null, '', '#/lop/' + g + (mode === 'exams' ? '/exams' : ''));
+        }
+        renderPage();
+      };
+    });
+
+    // Mode switcher
+    app.querySelectorAll('[data-mode]').forEach(function(btn){
+      btn.onclick = function(){
+        mode = btn.dataset.mode;
+        renderPage();
+      };
+    });
+
+    document.getElementById('toc-print-formulas').onclick = function(){
+      openGradeFormulaPrint(g);
+    };
+
+    var mainBody = document.getElementById('toc-main-body');
+    if (mode === 'toc') {
+      mainBody.innerHTML = buildTocBodyHtml(g);
+      wirePrintButtons(mainBody);
     } else {
-      mountExamExplorer(bodyEl, g, 'all');
+      mountExamExplorer(mainBody, g, 'all');
+    }
+
+    // Instant Search + Voice
+    var sInput = document.getElementById('toc-search');
+    var sOut = document.getElementById('toc-search-out');
+
+    function runSearch(raw){
+      var q = normVi(raw);
+      if (!q) {
+        sOut.hidden = true;
+        sOut.innerHTML = '';
+        return;
+      }
+      var matchedTopics = D.filter(function(t){
+        var hay = normVi(t.title + ' ' + (t.chapCode || '') + ' ' + (t.chapTitle || '') + ' ' + (t.sgk || '') + ' lop ' + t.grade + ' ' + t.formulas.join(' '));
+        return hay.indexOf(q) > -1;
+      }).sort(function(a, b){
+        var ag = a.grade === g ? 0 : 1;
+        var bg = b.grade === g ? 0 : 1;
+        return ag - bg || a.grade - b.grade || (a.order || 99) - (b.order || 99);
+      }).slice(0, 8);
+
+      var matchedExams = EXAMS.filter(function(ex){
+        return normVi(ex.title + ' lop ' + ex.grade + ' ' + ex.scope).indexOf(q) > -1;
+      }).slice(0, 4);
+
+      if (!matchedTopics.length && !matchedExams.length) {
+        sOut.hidden = false;
+        sOut.innerHTML = '<div class="empty" style="padding:10px">Không tìm thấy bài khớp từ khóa <b>"' + esc(raw) + '"</b>.</div>';
+        return;
+      }
+
+      var rows = '';
+      matchedTopics.forEach(function(t){
+        rows +=
+          '<div class="s-item">' +
+            '<div>' + tag(t.subj) + ' <b>Lớp ' + t.grade + ' · ' + esc(displayLessonTitle(t)) + '</b></div>' +
+            '<a class="btn sm" href="#/bai/' + t.id + '">Mở bài ›</a>' +
+          '</div>';
+      });
+      matchedExams.forEach(function(ex){
+        rows +=
+          '<div class="s-item">' +
+            '<div><span class="badge pri">Đề Lớp ' + ex.grade + '</span> <b>' + esc(ex.title) + '</b></div>' +
+            '<a class="btn sm alt" href="#/lam-de/' + ex.id + '">Làm đề ›</a>' +
+          '</div>';
+      });
+      sOut.hidden = false;
+      sOut.innerHTML = rows;
+    }
+
+    sInput.oninput = function(){ runSearch(sInput.value); };
+
+    var micBtn = document.getElementById('toc-mic');
+    if (micBtn && SpeechRec) {
+      var rec = null;
+      micBtn.onclick = function(){
+        if (rec) { try { rec.stop(); } catch (e) {} return; }
+        try {
+          rec = new SpeechRec();
+          rec.lang = 'vi-VN';
+          rec.interimResults = false;
+          micBtn.classList.add('listening');
+          micBtn.textContent = 'Đang nghe…';
+          rec.onresult = function(ev){
+            var txt = ev.results && ev.results[0] && ev.results[0][0] ? ev.results[0][0].transcript : '';
+            if (txt) { sInput.value = txt; runSearch(txt); }
+          };
+          rec.onend = function(){
+            micBtn.classList.remove('listening');
+            micBtn.textContent = 'Giọng nói';
+            rec = null;
+          };
+          rec.start();
+        } catch (e) {
+          micBtn.classList.remove('listening');
+          rec = null;
+        }
+      };
     }
   }
 
-  renderView();
+  renderPage();
 }
 
-// --- VIEW 3: Lesson ---
+// ============================================================================
+// VIEW 3: LESSON (CLEAN SINGLE-COLUMN BOOK PAGE, NO SCRATCHPAD)
+// ============================================================================
 function lesson(id){
   var t = byId[id];
   if (!t) {
     updateNavActive('home');
-    app.innerHTML = '<div class="empty"><p>Không tìm thấy bài học.</p><a class="btn" href="#/">Về trang chủ</a></div>';
+    app.innerHTML = '<div class="empty"><p>Không tìm thấy bài học.</p><a class="btn" href="#/">Về Mục lục sách</a></div>';
     return;
   }
   setPrefGrade(t.grade);
-  updateNavActive('lop-' + t.grade);
+  updateNavActive('home');
 
   var meta = loadMeta();
   meta.lastLessonId = id;
   saveMeta(meta);
 
-  var allDrafts = loadDrafts();
-  var padDraft = allDrafts[id] || { strokes: [] };
-
-  var sameGrade = D.filter(function(x){ return x.grade === t.grade; }).slice().sort(function(a,b){
-    return (a.order || 99) - (b.order || 99);
-  });
+  var sameGrade = getSortedGradeLessons(t.grade);
   var pos = sameGrade.findIndex(function(x){ return x.id === id; });
   var prevLesson = pos > 0 ? sameGrade[pos - 1] : null;
   var nextLesson = pos > -1 && pos < sameGrade.length - 1 ? sameGrade[pos + 1] : null;
 
   var relatedExams = EXAMS.filter(function(ex){
-    return ex.topics.indexOf(id) > -1 && (!t.stage || !ex.stage || ex.stage <= t.stage || ex.topics.length === 1);
+    return ex.topics.indexOf(id) > -1 && (!t.stage || !ex.stage || ex.stage === t.stage);
   });
 
   var sampled = BANK ? BANK.sampleLessonSet(t, 4) : { totalAvailable: t.questions.length, items: getTopicPool(t, 1) };
   var sessionItems = sampled.items;
-  var totalBankCount = sampled.totalAvailable;
   var sessionAnswers = {};
   var sessionOrders = {};
   var lockedPrintSpec = null;
@@ -1477,55 +1280,45 @@ function lesson(id){
   var availDiffs = [1, 2, 3, 4].filter(function(lv){
     return sessionItems.some(function(it){ return it.d === lv; });
   });
-  var selectedDiff = availDiffs.length >= 3 ? String(availDiffs[0]) : 'all';
+  var selectedDiff = 'all';
   var canSpeak = typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance === 'function';
 
   var h =
-    '<div class="crumb"><a href="#/">Trang chủ</a> › <a href="#/lop/' + t.grade + '">Lớp ' + t.grade + '</a> › ' + esc(t.title) + '</div>' +
-    '<div class="row between">' +
+    '<div class="crumb">' +
+      '<a href="#/lop/' + t.grade + '">← Mục lục KHTN Lớp ' + t.grade + '</a>' +
+      (t.chapCode ? ' › ' + esc(t.chapCode + (t.chapTitle ? ': ' + t.chapTitle : '')) : '') +
+    '</div>' +
+    '<div class="page-top-bar">' +
       '<div class="row">' +
         tag(t.subj) +
-        '<span class="badge">Lớp ' + t.grade + (t.term ? ' · ' + t.term : '') + (t.weeks ? ' · ' + t.weeks : '') + '</span>' +
-        '<span class="badge pri" id="bank-info">Kho ' + totalBankCount + '+ câu riêng bài này</span>' +
+        (t.sgk ? '<span class="badge pri">' + esc(t.sgk) + ' SGK</span>' : '') +
+        (t.term ? '<span class="badge">' + esc(t.term === 'HK2' ? 'Học kì II' : 'Học kì I') + '</span>' : '') +
       '</div>' +
       '<div class="row">' +
-        '<button type="button" class="btn sm subtle" id="les-share-btn">Chia sẻ bài</button>' +
-        '<button type="button" class="btn sm alt" id="top-dl-2part">In bài này (Đề + Đáp án)</button>' +
+        (canSpeak ? '<button type="button" class="btn sm subtle" id="btn-tts">Nghe tóm tắt</button>' : '') +
+        '<button type="button" class="btn sm alt" id="top-dl-study">In bài + Đáp án</button>' +
       '</div>' +
     '</div>' +
-    '<h1>' + esc(t.title) + '</h1>';
-
-  if (t.prereq && t.prereq.length) {
-    h += '<div class="card soft" style="margin-bottom:14px"><b>Bài nền liên quan:</b> ' +
-      t.prereq.map(function(pid){
-        var b = byId[pid];
-        if (!b) return '';
-        var okMark = isMastered(pid) ? ' <span class="done">(đã vững ✓)</span>' : '';
-        return '<a href="#/bai/' + pid + '">' + esc(b.title) + ' (Lớp ' + b.grade + ')</a>' + okMark;
-      }).join(' · ') + '</div>';
-  }
+    '<h1>' + esc(displayLessonTitle(t)) + '</h1>';
 
   h +=
     '<section class="card" style="margin-bottom:14px">' +
-      '<div class="row between">' +
-        '<h2 style="margin:0">1. Tóm tắt kiến thức trọng tâm</h2>' +
-        (canSpeak ? '<button type="button" class="btn sm alt" id="btn-tts">Nghe đọc tóm tắt</button>' : '') +
-      '</div>' +
-      '<ul class="tight" style="margin-top:8px">' + t.theory.map(function(s){ return '<li>' + fmtMath(s) + '</li>'; }).join('') + '</ul>' +
-      '<h2>2. Công thức &amp; giải thích kí hiệu</h2>' +
+      '<h2 style="margin-top:0">1. Kiến thức trọng tâm</h2>' +
+      '<ul class="tight">' + t.theory.map(function(s){ return '<li>' + fmtMath(s) + '</li>'; }).join('') + '</ul>' +
+      '<h2>2. Công thức &amp; ghi nhớ</h2>' +
       t.formulas.map(function(f){ return '<div class="formula">' + fmtFormula(f) + '</div>'; }).join('');
 
   var topicTypes = (window.KHTN_TYPES && window.KHTN_TYPES[t.id]) ? window.KHTN_TYPES[t.id] : null;
   if (topicTypes && topicTypes.length) {
-    h += '<h2>3. Các dạng bài tập thường gặp &amp; Ví dụ giải mẫu</h2>';
-    topicTypes.forEach(function(tp, ti){
+    h += '<h2>3. Các dạng bài thường gặp &amp; Ví dụ mẫu</h2>';
+    topicTypes.forEach(function(tp){
       h +=
         '<div class="type-card">' +
           '<div><b>' + fmtMath(tp.name) + '</b></div>' +
           '<div class="type-method"><b>Cách làm:</b> ' + fmtMath(tp.method) + '</div>' +
           (tp.ex
-            ? '<details' + (ti === 0 ? ' open' : '') + '>' +
-                '<summary>Xem ví dụ mẫu &amp; lời giải</summary>' +
+            ? '<details>' +
+                '<summary>Xem ví dụ &amp; lời giải</summary>' +
                 '<div class="type-ex"><b>Ví dụ:</b> ' + fmtMath(tp.ex) +
                   (tp.sol ? '<br><b>Lời giải:</b> ' + fmtMath(tp.sol) : '') +
                 '</div>' +
@@ -1534,12 +1327,12 @@ function lesson(id){
         '</div>';
     });
   } else if (t.examples && t.examples.length) {
-    h += '<h2>3. Ví dụ giải mẫu từng bước</h2>';
+    h += '<h2>3. Ví dụ giải mẫu</h2>';
     t.examples.forEach(function(ex, ei){
       h +=
         '<div class="example-card">' +
           '<div><b>Ví dụ ' + (ei + 1) + '.</b> ' + fmtMath(ex.q) + '</div>' +
-          '<details' + (ei === 0 ? ' open' : '') + '>' +
+          '<details>' +
             '<summary>Xem lời giải từng bước</summary>' +
             '<ol class="example-steps">' + ex.steps.map(function(st){ return '<li>' + fmtMath(st) + '</li>'; }).join('') + '</ol>' +
             '<div><b>Đáp số:</b> ' + fmtMath(ex.ans) + '</div>' +
@@ -1550,35 +1343,19 @@ function lesson(id){
   h += '</section>';
 
   h +=
-    '<div class="row between">' +
-      '<h2 style="margin:.4em 0">4. Trắc nghiệm lí thuyết &amp; Bài tập củng cố</h2>' +
-      '<button type="button" class="btn sm alt" id="btn-reroll">Đổi bộ câu hỏi khác</button>' +
-    '</div>' +
-    '<div class="helper-tip">' +
-      '<span>Chọn đáp án <b>A, B, C, D</b> (hoặc điền kết quả số) để kiểm tra và xem hướng dẫn giải ngay tại chỗ.</span>' +
+    '<div class="page-top-bar" style="margin-top:16px">' +
+      '<h2 style="margin:0">4. Câu hỏi luyện tập</h2>' +
+      '<div class="row">' +
+        '<button type="button" class="btn sm alt" id="btn-reroll">Đổi bộ câu khác</button>' +
+        '<button type="button" class="btn sm subtle" id="pdf-both">In phiếu bài tập</button>' +
+      '</div>' +
     '</div>' +
     (availDiffs.length > 1 ? '<div class="ladder" id="diff-ladder"></div>' : '') +
-    '<div class="workspace has-pad">' +
-      '<div>' +
-        '<div id="qs"></div>' +
-        '<div id="res"></div>' +
-      '</div>' +
-      '<div class="pad-col" id="padw"></div>' +
-    '</div>';
-
-  h +=
-    '<div class="card soft" style="margin-top:16px">' +
-      '<div class="row between">' +
-        '<div><b>In phiếu bài tập A4 hoặc lưu PDF</b><div class="muted" style="font-size:.88rem">Chỉ gồm kiến thức của bài <b>' + esc(t.title) + '</b>, tách riêng Tờ Đề bài và Tờ Đáp án.</div></div>' +
-        '<div class="row">' +
-          '<button type="button" class="btn sm" id="pdf-both">In Đề + Đáp án</button>' +
-          '<button type="button" class="btn sm alt" id="pdf-study">In Lý thuyết + Đề + Đáp án</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+    '<div id="qs"></div>' +
+    '<div id="res"></div>';
 
   if (relatedExams.length) {
-    h += '<div class="card soft" style="margin-top:12px"><b>Đề kiểm tra 15 phút / Giữa kì có bài này:</b><div class="row" style="margin-top:8px">' +
+    h += '<div class="card soft" style="margin-top:14px"><b>Đề kiểm tra của giai đoạn này:</b><div class="row" style="margin-top:6px">' +
       relatedExams.map(function(ex){
         return '<a class="btn sm subtle" href="#/lam-de/' + ex.id + '">' + esc(ex.title) + ' ›</a>';
       }).join('') + '</div></div>';
@@ -1586,15 +1363,13 @@ function lesson(id){
 
   h +=
     '<div class="lesson-nav">' +
-      (prevLesson ? '<a class="btn subtle" href="#/bai/' + prevLesson.id + '">← Bài trước: ' + esc(prevLesson.title) + '</a>' : '<span></span>') +
-      (nextLesson ? '<a class="btn" href="#/bai/' + nextLesson.id + '">Bài tiếp theo: ' + esc(nextLesson.title) + ' →</a>' : '<a class="btn" href="#/de-kiem-tra/' + t.grade + '">Sang Đề kiểm tra lớp ' + t.grade + ' →</a>') +
+      (prevLesson ? '<a class="btn subtle" href="#/bai/' + prevLesson.id + '">← ' + esc(prevLesson.sgk || 'Bài trước') + '</a>' : '<a class="btn subtle" href="#/lop/' + t.grade + '">← Mục lục Lớp ' + t.grade + '</a>') +
+      '<a class="btn alt sm" href="#/lop/' + t.grade + '">Mục lục Lớp ' + t.grade + '</a>' +
+      (nextLesson ? '<a class="btn" href="#/bai/' + nextLesson.id + '">Tiếp: ' + esc(displayLessonTitle(nextLesson)) + ' →</a>' : '<a class="btn" href="#/de-kiem-tra/' + t.grade + '">Đề kiểm tra Lớp ' + t.grade + ' →</a>') +
     '</div>';
 
   app.innerHTML = h;
 
-  document.getElementById('les-share-btn').onclick = function(){ openShareModal(t.title); };
-
-  // Wire Read-Aloud TTS
   var ttsBtn = document.getElementById('btn-tts');
   if (ttsBtn && canSpeak) {
     var speakingThis = false;
@@ -1602,50 +1377,41 @@ function lesson(id){
       if (speakingThis || window.speechSynthesis.speaking) {
         stopSpeech();
         speakingThis = false;
-        ttsBtn.textContent = 'Nghe đọc tóm tắt';
+        ttsBtn.textContent = 'Nghe tóm tắt';
         return;
       }
-      var fullTxt = t.title + '. Tóm tắt kiến thức cần nhớ: ' + t.theory.map(plainSpeechText).join('. ');
+      var fullTxt = displayLessonTitle(t) + '. ' + t.theory.map(plainSpeechText).join('. ');
       var utt = new SpeechSynthesisUtterance(fullTxt);
       utt.lang = 'vi-VN';
       utt.rate = 0.96;
       speakingThis = true;
       ttsBtn.textContent = 'Dừng đọc';
-      utt.onend = function(){ speakingThis = false; ttsBtn.textContent = 'Nghe đọc tóm tắt'; };
+      utt.onend = function(){ speakingThis = false; ttsBtn.textContent = 'Nghe tóm tắt'; };
       utt.onerror = function(){
         speakingThis = false;
-        ttsBtn.textContent = 'Nghe đọc tóm tắt';
+        ttsBtn.textContent = 'Nghe tóm tắt';
         showToast('Thiết bị này chưa cài giọng đọc tiếng Việt.');
       };
       window.speechSynthesis.speak(utt);
     };
   }
+  currentCleanup = function(){ stopSpeech(); };
 
   var qsEl = document.getElementById('qs');
   var resEl = document.getElementById('res');
   var ladderEl = document.getElementById('diff-ladder');
-  var bankInfoEl = document.getElementById('bank-info');
 
   function rerollQuestions(){
     sampled = BANK ? BANK.sampleLessonSet(t, 4) : { totalAvailable: t.questions.length, items: getTopicPool(t, 1) };
     sessionItems = sampled.items;
-    totalBankCount = sampled.totalAvailable;
     sessionAnswers = {};
     sessionOrders = {};
     lockedPrintSpec = null;
-    availDiffs = [1, 2, 3, 4].filter(function(lv){
-      return sessionItems.some(function(it){ return it.d === lv; });
-    });
-    if (selectedDiff !== 'all' && availDiffs.indexOf(Number(selectedDiff)) === -1) {
-      selectedDiff = availDiffs.length ? String(availDiffs[0]) : 'all';
-    }
-    if (bankInfoEl) {
-      bankInfoEl.textContent = 'Đã đổi bộ ' + sessionItems.length + ' câu hỏi mới (kho ' + totalBankCount + '+ câu)';
-    }
-    showToast('Đã đổi bộ câu hỏi mới với số liệu khác.');
+    availDiffs = [1, 2, 3, 4].filter(function(lv){ return sessionItems.some(function(it){ return it.d === lv; }); });
+    if (selectedDiff !== 'all' && availDiffs.indexOf(Number(selectedDiff)) === -1) selectedDiff = 'all';
+    showToast('✓ Đã đổi bộ câu hỏi mới.');
     renderQuestionsForSelectedDiff();
   }
-
   document.getElementById('btn-reroll').onclick = rerollQuestions;
 
   function indicesForDiff(df){
@@ -1659,28 +1425,23 @@ function lesson(id){
 
   function renderLadder(){
     if (!ladderEl) return;
-    var steps = availDiffs.map(function(lv){
-      var idxs = indicesForDiff(String(lv));
-      var ansCnt = idxs.filter(function(i){ return !!sessionAnswers[i]; }).length;
-      var okCnt = idxs.filter(function(i){ return sessionAnswers[i] && sessionAnswers[i].ok; }).length;
-      var statusTxt = ansCnt === idxs.length && idxs.length > 0
-        ? ('Đúng ' + okCnt + '/' + idxs.length + (okCnt / idxs.length >= 0.67 ? ' ✓' : ''))
-        : ('Đã làm ' + ansCnt + '/' + idxs.length + ' câu');
-      return '<button type="button" class="ladder-step ' + (selectedDiff === String(lv) ? 'on' : '') + '" data-df="' + lv + '">' +
-        '<b>' + DIFF[lv] + '</b><small>' + statusTxt + '</small></button>';
-    });
     var allIdxs = indicesForDiff('all');
     var allAns = allIdxs.filter(function(i){ return !!sessionAnswers[i]; }).length;
-    steps.push(
+    var pills = [
       '<button type="button" class="ladder-step ' + (selectedDiff === 'all' ? 'on' : '') + '" data-df="all">' +
-      '<b>Xem tất cả câu</b><small>' + allAns + '/' + allIdxs.length + ' câu lượt này</small></button>'
-    );
-    ladderEl.innerHTML = steps.join('');
+        '<b>Tất cả</b><small>(' + allAns + '/' + allIdxs.length + ')</small></button>'
+    ];
+    availDiffs.forEach(function(lv){
+      var idxs = indicesForDiff(String(lv));
+      var ansCnt = idxs.filter(function(i){ return !!sessionAnswers[i]; }).length;
+      pills.push(
+        '<button type="button" class="ladder-step ' + (selectedDiff === String(lv) ? 'on' : '') + '" data-df="' + lv + '">' +
+          '<b>' + DIFF_SHORT[lv] + '</b><small>(' + ansCnt + '/' + idxs.length + ')</small></button>'
+      );
+    });
+    ladderEl.innerHTML = pills.join('');
     ladderEl.querySelectorAll('button').forEach(function(b){
-      b.onclick = function(){
-        selectedDiff = b.dataset.df;
-        renderQuestionsForSelectedDiff();
-      };
+      b.onclick = function(){ selectedDiff = b.dataset.df; renderQuestionsForSelectedDiff(); };
     });
   }
 
@@ -1715,39 +1476,19 @@ function lesson(id){
       saveProg(p);
     }
 
-    var nextDiff = null;
-    if (selectedDiff !== 'all') {
-      var curPos = availDiffs.indexOf(Number(selectedDiff));
-      if (curPos > -1 && curPos < availDiffs.length - 1) nextDiff = String(availDiffs[curPos + 1]);
-    }
-    var levelTitle = selectedDiff === 'all' ? 'toàn bài' : DIFF[Number(selectedDiff)];
-    var singleTopicExam = EXAMS.find(function(ex){ return ex.topics.length === 1 && ex.topics[0] === id; });
-
     resEl.className = 'card highlight';
     resEl.style.marginTop = '12px';
     resEl.innerHTML =
       '<div class="row between">' +
-        '<div><div class="score-big">Điểm ' + esc(levelTitle) + ': ' + score10(ratio) + ' / 10</div>' +
-        '<div>Làm đúng <b>' + right + '/' + idxs.length + '</b> câu</div></div>' +
-        '<span class="badge ' + (ratio >= 0.67 ? 'ok' : 'warn') + '">' + (ratio >= 0.67 ? '✓ Đã nắm vững' : 'Nên làm thêm 1 lượt') + '</span>' +
+        '<div><div class="score-big">Kết quả: ' + score10(ratio) + ' / 10</div>' +
+        '<div>Đúng <b>' + right + '/' + idxs.length + '</b> câu</div></div>' +
+        '<span class="badge ' + (ratio >= 0.67 ? 'ok' : 'warn') + '">' + (ratio >= 0.67 ? '✓ Đã nắm vững' : 'Nên rèn thêm') + '</span>' +
       '</div>' +
-      '<p style="margin:.6em 0">' + (ratio >= 0.67
-        ? (nextDiff ? 'Giỏi lắm! Bấm nút bên dưới để bước tiếp lên <b>' + DIFF[Number(nextDiff)] + '</b> nhé.' : 'Xuất sắc! Em đã hoàn thành bài này — có thể thử sức với Đề kiểm tra 15 phút bên dưới.')
-        : 'Đừng lo nhé! Em xem lại cách giải ở từng câu phía trên rồi bấm Đổi bộ câu hỏi khác để làm lại cho quen tay.') + '</p>' +
-      '<div class="row">' +
-        (nextDiff ? '<button type="button" class="btn" id="next-diff">Làm tiếp ' + DIFF[Number(nextDiff)] + ' →</button>' : '') +
-        (!nextDiff && singleTopicExam ? '<a class="btn" href="#/lam-de/' + singleTopicExam.id + '">Làm Đề 15 phút bài này →</a>' : '') +
-        '<button type="button" class="btn alt" id="again-rand">Đổi bộ câu hỏi khác</button>' +
+      '<div class="row" style="margin-top:10px">' +
+        '<button type="button" class="btn" id="again-rand">Làm bộ câu mới</button>' +
+        (nextLesson ? '<a class="btn alt" href="#/bai/' + nextLesson.id + '">Sang bài tiếp theo →</a>' : '') +
       '</div>';
 
-    var btnNextDiff = document.getElementById('next-diff');
-    if (btnNextDiff) {
-      btnNextDiff.onclick = function(){
-        selectedDiff = nextDiff;
-        renderQuestionsForSelectedDiff();
-        qsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      };
-    }
     document.getElementById('again-rand').onclick = rerollQuestions;
   }
 
@@ -1758,14 +1499,8 @@ function lesson(id){
     var classify = (BANK && typeof BANK.classifySection === 'function')
       ? BANK.classifySection
       : function(q, d){ return (q && q.n == null && (!d || d <= 2)) ? 'lt' : 'bt'; };
-    var ltIdxs = idxs.filter(function(i){
-      var it = sessionItems[i];
-      return (it.sec || classify(it.q, it.d)) === 'lt';
-    });
-    var btIdxs = idxs.filter(function(i){
-      var it = sessionItems[i];
-      return (it.sec || classify(it.q, it.d)) !== 'lt';
-    });
+    var ltIdxs = idxs.filter(function(i){ return (sessionItems[i].sec || classify(sessionItems[i].q, sessionItems[i].d)) === 'lt'; });
+    var btIdxs = idxs.filter(function(i){ return (sessionItems[i].sec || classify(sessionItems[i].q, sessionItems[i].d)) !== 'lt'; });
     var showSplit = ltIdxs.length > 0 && btIdxs.length > 0;
     var orderedIdxs = showSplit ? ltIdxs.concat(btIdxs) : idxs;
 
@@ -1773,12 +1508,12 @@ function lesson(id){
       if (showSplit && displayIdx === 0) {
         var bA = document.createElement('div');
         bA.className = 'sec-banner';
-        bA.innerHTML = '<b>Phần A. Trắc nghiệm lí thuyết</b><span class="badge pri">' + ltIdxs.length + ' câu</span>';
+        bA.innerHTML = '<span>Phần A. Trắc nghiệm lí thuyết</span><span class="badge pri">' + ltIdxs.length + ' câu</span>';
         qsEl.appendChild(bA);
       } else if (showSplit && displayIdx === ltIdxs.length) {
         var bB = document.createElement('div');
         bB.className = 'sec-banner bt';
-        bB.innerHTML = '<b>Phần B. Bài tập bổ sung củng cố</b><span class="badge">' + btIdxs.length + ' câu</span>';
+        bB.innerHTML = '<span>Phần B. Bài tập vận dụng</span><span class="badge">' + btIdxs.length + ' câu</span>';
         qsEl.appendChild(bB);
       }
       var item = sessionItems[sIdx];
@@ -1793,13 +1528,12 @@ function lesson(id){
           sessionAnswers[sIdx] = ansState;
           recordMistake(t.id, item.staticIdx, ok, q);
           renderLadder();
-          var allDone = orderedIdxs.every(function(i){ return !!sessionAnswers[i]; });
-          if (allDone) renderSummary(orderedIdxs, true);
+          if (orderedIdxs.every(function(i){ return !!sessionAnswers[i]; })) {
+            renderSummary(orderedIdxs, true);
+          }
         }
       });
-      if (qNode._choices) {
-        sessionOrders[sIdx] = qNode._choices;
-      }
+      if (qNode._choices) sessionOrders[sIdx] = qNode._choices;
       qsEl.appendChild(qNode);
     });
     renderSummary(orderedIdxs, false);
@@ -1807,191 +1541,59 @@ function lesson(id){
 
   renderQuestionsForSelectedDiff();
 
-  var padEl = window.KHTNPad.create({
-    initialStrokes: padDraft.strokes || [],
-    onChange: function(strokes){
-      var d = loadDrafts();
-      d[id] = { strokes: strokes, updatedAt: Date.now() };
-      saveDrafts(d);
-    }
-  });
-  document.getElementById('padw').appendChild(padEl);
-  currentCleanup = function(){
-    stopSpeech();
-    if (padEl && padEl._destroy) padEl._destroy();
-  };
-
-  function getLockedSnapshot(){
-    if (!lockedPrintSpec) {
-      lockedPrintSpec = createFreshLessonSnapshot(t, 'all', sessionItems);
-    }
-    return lockedPrintSpec;
-  }
   function openLessonPrint(mode){
-    window.KHTNPrint.open(getLockedSnapshot(), mode, {
+    if (!lockedPrintSpec) lockedPrintSpec = createFreshLessonSnapshot(t, 'all', sessionItems);
+    window.KHTNPrint.open(lockedPrintSpec, mode, {
       onRegenerate: function(){
         lockedPrintSpec = createFreshLessonSnapshot(t, 'all', null);
         return lockedPrintSpec;
       }
     });
   }
-  document.getElementById('top-dl-2part').onclick = function(){ openLessonPrint('both'); };
+  document.getElementById('top-dl-study').onclick = function(){ openLessonPrint('study'); };
   document.getElementById('pdf-both').onclick = function(){ openLessonPrint('both'); };
-  document.getElementById('pdf-study').onclick = function(){ openLessonPrint('study'); };
 }
 
-// --- VIEW 4: Exam Catalog (#/de-kiem-tra/:g/:cat) ---
+// ============================================================================
+// VIEW 4: EXAM CATALOG (#/de-kiem-tra/:g/:cat)
+// ============================================================================
 function examCatalog(g, initialCat){
   if ([6,7,8,9].indexOf(g) === -1) g = getPrefGrade();
   setPrefGrade(g);
   updateNavActive('de-kiem-tra');
 
   var h =
-    '<div class="crumb"><a href="#/">Trang chủ</a> › Đề kiểm tra Lớp ' + g + '</div>' +
-    '<div class="row between">' +
-      '<h1>Kho đề kiểm tra 15 phút · Giữa kì · Cuối kì – Lớp ' + g + '</h1>' +
-      '<div class="row">' +
+    '<div class="crumb"><a href="#/lop/' + g + '">← Mục lục Lớp ' + g + '</a> › Đề kiểm tra</div>' +
+    '<div class="page-top-bar">' +
+      '<h1 style="margin:0">Đề kiểm tra 15p · Giữa kì · Cuối kì – Lớp ' + g + '</h1>' +
+      '<div class="toc-grades">' +
         [6,7,8,9].map(function(gr){
-          return '<a class="btn sm ' + (gr === g ? 'on' : 'subtle') + '" href="#/de-kiem-tra/' + gr + '">Lớp ' + gr + '</a>';
+          return '<a class="toc-grade-btn ' + (gr === g ? 'on' : '') + '" href="#/de-kiem-tra/' + gr + '">Lớp ' + gr + '</a>';
         }).join('') +
       '</div>' +
     '</div>' +
-    '<div id="cat-gb-slot"></div>' +
-    '<div class="helper-tip">' +
-      '<span><b>Đúng phạm vi tuần học:</b> Đề ở giai đoạn nào chỉ hỏi đúng các bài đã học tới giai đoạn đó, không trộn kiến thức học kì sau.</span>' +
-      '<a class="btn sm alt" href="#/luyen-tap">Tự chọn số câu theo ý muốn</a>' +
-    '</div>' +
+    '<p class="muted" style="margin:.2em 0 .8em;font-size:.88rem">Đề kiểm tra khóa chặt theo đúng phạm vi chương bài của từng kì trong SGK thống nhất.</p>' +
     '<div id="cat-exams-box"></div>';
 
   app.innerHTML = h;
-  mountGradebookWidget(document.getElementById('cat-gb-slot'), g);
   mountExamExplorer(document.getElementById('cat-exams-box'), g, initialCat || 'all');
 }
 
-// --- VIEW 4B: Dedicated 1-Screen Quick Print Page for Parents & Teachers (#/in-nhanh/:g) ---
-function quickPrintPage(g){
-  if ([6,7,8,9].indexOf(g) === -1) g = getPrefGrade();
-  setPrefGrade(g);
-  updateNavActive('in-nhanh');
-  var pTab = 'exams';
-
-  var gLessons = D.filter(function(t){ return t.grade === g; }).slice().sort(function(a,b){
-    return (a.order || 99) - (b.order || 99);
-  });
-  var gExams = EXAMS.filter(function(ex){ return ex.grade === g; });
-
-  function render(){
-    var h =
-      '<div class="crumb"><a href="#/">Trang chủ</a> › In đề giấy A4 (Lớp ' + g + ')</div>' +
-      '<div class="row between">' +
-        '<h1>In đề giấy A4 &amp; Lưu file PDF – Lớp ' + g + '</h1>' +
-        '<div class="row">' +
-          [6,7,8,9].map(function(gr){
-            return '<a class="btn sm ' + (gr === g ? 'on' : 'subtle') + '" href="#/in-nhanh/' + gr + '">Lớp ' + gr + '</a>';
-          }).join('') +
-        '</div>' +
-      '</div>' +
-      '<div class="card highlight" style="margin-bottom:14px">' +
-        '<div class="row between">' +
-          '<div>' +
-            '<b>Tự động tách Tờ 1: Đề bài (không đáp án) và Tờ 2: Đáp án chi tiết sang trang riêng.</b>' +
-            '<div class="muted" style="font-size:.88rem;margin-top:3px">Có thể in thêm bảng công thức và các dạng bài tập trọng tâm của cả năm Lớp ' + g + ':</div>' +
-          '</div>' +
-          '<button type="button" class="btn alt" id="qp-all-formulas">In Sổ tay công thức Lớp ' + g + '</button>' +
-        '</div>' +
-      '</div>' +
-      '<div class="tabs">' +
-        '<button type="button" data-qpt="exams" class="' + (pTab === 'exams' ? 'on' : '') + '">Đề kiểm tra 15p · Giữa kì · Cuối kì (' + gExams.length + ' đề)</button>' +
-        '<button type="button" data-qpt="lessons" class="' + (pTab === 'lessons' ? 'on' : '') + '">Phiếu bài tập từng bài học (' + gLessons.length + ' bài)</button>' +
-      '</div>' +
-      '<div id="qp-body"></div>';
-
-    app.innerHTML = h;
-
-    document.getElementById('qp-all-formulas').onclick = function(){
-      var TYPES = window.KHTN_TYPES || {};
-      var spec = window.KHTNPrint.prepare({
-        prefix: 'ST' + g,
-        subtitle: 'Toàn bộ công thức & các dạng bài trọng tâm KHTN Lớp ' + g + ' (GDPT 2018)',
-        formulaGroups: gLessons.map(function(t){ return { grade: t.grade, title: t.title, formulas: t.formulas, types: TYPES[t.id] || null }; })
-      });
-      window.KHTNPrint.open(spec, 'formulas');
-    };
-
-    app.querySelectorAll('[data-qpt]').forEach(function(b){
-      b.onclick = function(){ pTab = b.dataset.qpt; render(); };
-    });
-
-    var body = document.getElementById('qp-body');
-    if (pTab === 'exams') {
-      body.innerHTML = '<div class="grid two">' + gExams.map(function(ex){
-        return (
-          '<div class="card">' +
-            '<div class="row between"><span class="badge pri">' + esc(ex.term) + (ex.weeks ? ' · ' + esc(ex.weeks) : '') + '</span><span class="badge">' + ex.count + ' câu · ' + ex.minutes + ' phút</span></div>' +
-            '<h3 style="margin:.45em 0 .2em">' + esc(ex.title) + '</h3>' +
-            '<div class="muted" style="font-size:.88rem;margin-bottom:10px">' + esc(ex.scope) + '</div>' +
-            '<div class="row">' +
-              '<button type="button" class="btn sm" data-qp-ex="' + ex.id + '" data-mode="both">Xem &amp; In (Đề + Đáp án)</button>' +
-              '<button type="button" class="btn sm subtle" data-qp-ex="' + ex.id + '" data-mode="quiz">Chỉ tờ Đề</button>' +
-            '</div>' +
-          '</div>'
-        );
-      }).join('') + '</div>';
-
-      body.querySelectorAll('[data-qp-ex]').forEach(function(btn){
-        btn.onclick = function(){
-          var ex = examById[btn.getAttribute('data-qp-ex')];
-          var md = btn.getAttribute('data-mode') || 'both';
-          if (!ex) return;
-          window.KHTNPrint.open(getOrCreateExamPrintSpec(ex), md, {
-            onRegenerate: function(){ return createFreshExamSnapshot(ex); }
-          });
-        };
-      });
-    } else {
-      body.innerHTML = '<div class="grid two">' + gLessons.map(function(t){
-        return (
-          '<div class="card">' +
-            '<div class="row between">' + tag(t.subj) + (t.weeks ? '<span class="badge">' + esc(t.weeks) + '</span>' : '') + '</div>' +
-            '<h3 style="margin:.45em 0 .25em">' + esc(t.title) + '</h3>' +
-            '<div class="row" style="margin-top:8px">' +
-              '<button type="button" class="btn sm" data-qp-les="' + t.id + '" data-mode="study">In Lý thuyết + Đề + Đáp án</button>' +
-              '<button type="button" class="btn sm alt" data-qp-les="' + t.id + '" data-mode="both">Chỉ Đề + Đáp án</button>' +
-            '</div>' +
-          '</div>'
-        );
-      }).join('') + '</div>';
-
-      body.querySelectorAll('[data-qp-les]').forEach(function(btn){
-        btn.onclick = function(){
-          var t = byId[btn.getAttribute('data-qp-les')];
-          var md = btn.getAttribute('data-mode') || 'study';
-          if (!t) return;
-          var snap = createFreshLessonSnapshot(t, 'all', null);
-          window.KHTNPrint.open(snap, md, {
-            onRegenerate: function(){ return createFreshLessonSnapshot(t, 'all', null); }
-          });
-        };
-      });
-    }
-  }
-
-  render();
-}
-
-// --- VIEW 5: Exam Runner (#/lam-de/:examId) ---
+// ============================================================================
+// VIEW 5: EXAM RUNNER (#/lam-de/:examId) – CLEAN SINGLE COLUMN, NO SCRATCHPAD
+// ============================================================================
 function examRunner(examId){
   var ex = examById[examId];
   if (!ex) {
     updateNavActive('de-kiem-tra');
-    app.innerHTML = '<div class="empty"><p>Không tìm thấy đề kiểm tra.</p><a class="btn" href="#/de-kiem-tra/8">Xem danh sách đề</a></div>';
+    app.innerHTML = '<div class="empty"><p>Không tìm thấy đề kiểm tra.</p><a class="btn" href="#/de-kiem-tra/' + getPrefGrade() + '">Xem danh sách đề</a></div>';
     return;
   }
   setPrefGrade(ex.grade);
   updateNavActive('de-kiem-tra');
 
   var levelMode = ex.presetLevel || 'standard';
-  var examMode = 'practice'; // Default to instant feedback so non-tech students immediately see right/wrong! Can switch to 'exam' in 1 tap.
+  var examMode = 'practice';
   var timerId = null;
 
   function stopTimer(){
@@ -2000,52 +1602,46 @@ function examRunner(examId){
 
   function renderSetup(){
     stopTimer();
-    if (currentCleanup) { currentCleanup(); currentCleanup = null; }
     var st = loadExams()[ex.id];
     var setupPrintSpec = null;
 
     var h =
-      '<div class="crumb"><a href="#/">Trang chủ</a> › <a href="#/de-kiem-tra/' + ex.grade + '">Đề kiểm tra Lớp ' + ex.grade + '</a> › ' + esc(ex.title) + '</div>' +
-      '<div class="row between" style="margin-bottom:6px">' +
+      '<div class="crumb"><a href="#/lop/' + ex.grade + '">Mục lục Lớp ' + ex.grade + '</a> › <a href="#/de-kiem-tra/' + ex.grade + '">Đề kiểm tra</a> › ' + esc(ex.title) + '</div>' +
+      '<div class="page-top-bar">' +
         '<div class="row">' +
           '<span class="badge pri">Lớp ' + ex.grade + ' · ' + esc(ex.term) + (ex.weeks ? ' · ' + esc(ex.weeks) : '') + '</span>' +
-          '<span class="badge">' + ex.minutes + ' phút · ' + ex.count + ' câu hỏi</span>' +
+          '<span class="badge">' + ex.minutes + ' phút · ' + ex.count + ' câu</span>' +
         '</div>' +
-        '<button type="button" class="btn sm subtle" id="ex-share-btn">Chia sẻ đề</button>' +
+        '<button type="button" class="btn sm alt" id="ex-print-now">In Đề + Đáp án (PDF)</button>' +
       '</div>' +
       '<h1>' + esc(ex.title) + '</h1>' +
-      '<p class="muted"><b>Phạm vi kiến thức:</b> ' + esc(ex.scope) + '</p>' +
-      (st ? '<div class="card soft" style="margin-bottom:14px">Đã làm đề này <b>' + st.attempts + ' lần</b> · Điểm cao nhất: <b class="done">' + score10(st.best) + '/10</b> · Gần nhất: <b>' + score10(st.last) + '/10</b></div>' : '') +
+      '<p class="muted" style="margin-top:0"><b>Phạm vi:</b> ' + esc(ex.scope) + '</p>' +
+      (st ? '<div class="card soft" style="margin-bottom:12px">Đã làm <b>' + st.attempts + ' lần</b> · Điểm cao nhất: <b class="done">' + score10(st.best) + '/10</b> · Gần nhất: <b>' + score10(st.last) + '/10</b></div>' : '') +
       '<section class="card">' +
-        '<h2 style="margin-top:0">Chọn chế độ làm bài:</h2>' +
+        '<h3 style="margin-top:0">1. Chế độ làm bài:</h3>' +
         '<div class="choice-cards" id="mode-cards">' +
           '<button type="button" class="choice-card ' + (examMode === 'practice' ? 'on' : '') + '" data-m="practice">' +
-            '<b>Biết Đúng / Sai ngay từng câu (Khuyên dùng)</b>' +
-            '<small>Chọn câu nào xem kết quả và lời giải ngay câu đó.</small>' +
+            '<b>Biết Đúng / Sai ngay từng câu</b>' +
+            '<small>Chọn đáp án nào xem kết quả và lời giải ngay câu đó.</small>' +
           '</button>' +
           '<button type="button" class="choice-card ' + (examMode === 'exam' ? 'on' : '') + '" data-m="exam">' +
             '<b>Làm như kiểm tra trên lớp</b>' +
-            '<small>Hoàn thành cả đề rồi bấm Nộp bài ở cuối trang để chấm điểm một lượt.</small>' +
+            '<small>Làm hết đề rồi bấm Nộp bài ở cuối trang để chấm điểm một lượt.</small>' +
           '</button>' +
         '</div>' +
-
-        '<h3>Mức độ đề:</h3>' +
-        '<div class="filters" id="level-pills" style="margin-bottom:16px">' +
-          '<button type="button" data-lv="basic" class="' + (levelMode === 'basic' ? 'on' : '') + '">Cơ bản – Lấy gốc</button>' +
+        '<h3>2. Mức độ câu hỏi:</h3>' +
+        '<div class="filters" id="level-pills" style="margin-bottom:14px">' +
+          '<button type="button" data-lv="basic" class="' + (levelMode === 'basic' ? 'on' : '') + '">Cơ bản</button>' +
           '<button type="button" data-lv="standard" class="' + (levelMode === 'standard' ? 'on' : '') + '">Chuẩn trên lớp</button>' +
-          '<button type="button" data-lv="advanced" class="' + (levelMode === 'advanced' ? 'on' : '') + '">Nâng cao (Điểm 9–10)</button>' +
+          '<button type="button" data-lv="advanced" class="' + (levelMode === 'advanced' ? 'on' : '') + '">Nâng cao (9–10đ)</button>' +
         '</div>' +
-
         '<div class="row">' +
           '<button type="button" class="btn lg" id="ex-start">Bắt đầu làm bài ›</button>' +
-          '<button type="button" class="btn alt" id="ex-print-now">In ra giấy A4 (Đề + Đáp án)</button>' +
           '<a class="btn subtle" href="#/de-kiem-tra/' + ex.grade + '">← Chọn đề khác</a>' +
         '</div>' +
       '</section>';
 
     app.innerHTML = h;
-
-    document.getElementById('ex-share-btn').onclick = function(){ openShareModal(ex.title); };
 
     app.querySelectorAll('#mode-cards .choice-card').forEach(function(c){
       c.onclick = function(){
@@ -2061,13 +1657,10 @@ function examRunner(examId){
       };
     });
 
-    function ensureSetupSpec(){
-      if (!setupPrintSpec) setupPrintSpec = createFreshExamSnapshot(ex, levelMode);
-      return setupPrintSpec;
-    }
-    document.getElementById('ex-start').onclick = function(){ startExam(); };
+    document.getElementById('ex-start').onclick = startExam;
     document.getElementById('ex-print-now').onclick = function(){
-      window.KHTNPrint.open(ensureSetupSpec(), 'both', {
+      if (!setupPrintSpec) setupPrintSpec = createFreshExamSnapshot(ex, levelMode);
+      window.KHTNPrint.open(setupPrintSpec, 'both', {
         onRegenerate: function(){ setupPrintSpec = createFreshExamSnapshot(ex, levelMode); return setupPrintSpec; }
       });
     };
@@ -2075,10 +1668,9 @@ function examRunner(examId){
 
   function startExam(){
     stopTimer();
-    if (currentCleanup) { currentCleanup(); currentCleanup = null; }
     var picks = buildExamItems(ex, levelMode);
     var isDeferred = examMode === 'exam';
-    var levelTxt = levelMode === 'basic' ? 'Mức Dễ – Lấy gốc' : (levelMode === 'advanced' ? 'Mức Nâng cao' : 'Vừa sức trên lớp');
+    var levelTxt = levelMode === 'basic' ? 'Cơ bản' : (levelMode === 'advanced' ? 'Nâng cao' : 'Chuẩn trên lớp');
 
     var attemptSpec = window.KHTNPrint.prepare({
       prefix: 'KT' + ex.grade,
@@ -2087,14 +1679,12 @@ function examRunner(examId){
       minutes: ex.minutes,
       isExam: true,
       problemTypes: collectExamProblemTypes(ex.topics),
-      items: picks.map(function(p){ return { topicTitle: p.t.title.replace(/^Bài \d+:\s*/, ''), q: p.q }; })
+      items: picks.map(function(p){ return { topicTitle: p.t.sgk || p.t.title, q: p.q }; })
     });
 
     var submitted = false;
-    var totalSec = ex.minutes * 60;
-    var leftSec = totalSec;
+    var leftSec = ex.minutes * 60;
     var paused = false;
-    var timerHidden = false;
     var startTs = Date.now();
 
     function fmtClock(sec){
@@ -2105,13 +1695,12 @@ function examRunner(examId){
     }
 
     var h =
-      '<div class="crumb"><a href="#/">Trang chủ</a> › <a href="#/de-kiem-tra/' + ex.grade + '">Đề kiểm tra Lớp ' + ex.grade + '</a> › ' + esc(ex.title) + '</div>' +
-      '<div class="row between">' +
-        '<div><h1 style="margin-bottom:.15em">' + esc(ex.title) + '</h1>' +
-        '<div class="muted">Mã đề: <b>' + esc(attemptSpec.code) + '</b> · ' + (isDeferred ? 'Chế độ Thi thử (Làm xong bấm Nộp bài)' : 'Chế độ Ôn luyện (Biết đúng/sai ngay)') + '</div></div>' +
+      '<div class="crumb"><a href="#/de-kiem-tra/' + ex.grade + '">← Đề kiểm tra Lớp ' + ex.grade + '</a> › Mã đề ' + esc(attemptSpec.code) + '</div>' +
+      '<div class="page-top-bar">' +
+        '<h1 style="margin:0">' + esc(ex.title) + '</h1>' +
         '<div class="row">' +
-          '<button type="button" class="btn sm alt" id="ex-top-pdf">In đề này</button>' +
-          '<button type="button" class="btn sm subtle" id="ex-new">Đổi đề mới</button>' +
+          '<button type="button" class="btn sm alt" id="ex-top-pdf">In Đề + Đáp án</button>' +
+          '<button type="button" class="btn sm subtle" id="ex-new">Đổi đề khác</button>' +
           '<button type="button" class="btn sm subtle" id="ex-cfg">Đổi chế độ</button>' +
         '</div>' +
       '</div>' +
@@ -2119,28 +1708,19 @@ function examRunner(examId){
         '<div class="row">' +
           '<span class="timer" id="ex-clock">' + fmtClock(leftSec) + '</span>' +
           '<button type="button" class="btn sm subtle" id="ex-pause">Tạm dừng</button>' +
-          '<button type="button" class="btn sm subtle" id="ex-hide-t">Ẩn giờ</button>' +
           '<span class="muted" style="font-weight:600" id="ex-prog">Đã làm: 0/' + picks.length + ' câu</span>' +
         '</div>' +
-        '<div class="row">' +
-          (isDeferred ? '<button type="button" class="btn sm" id="ex-submit">Nộp bài chấm điểm</button>' : '') +
-        '</div>' +
+        (isDeferred ? '<button type="button" class="btn sm" id="ex-submit">Nộp bài chấm điểm</button>' : '') +
       '</div>' +
-      (isDeferred ? '<div class="helper-tip"><span>Chọn đáp án từng câu (có thể đổi lại trước khi nộp). Làm xong bấm nút <b>Nộp bài chấm điểm</b> ở cuối trang.</span></div>' : '') +
-      '<div id="ex-time-msg" class="q-hint" hidden>Đã hết thời gian gợi ý (' + ex.minutes + ' phút). Bạn vẫn có thể kiểm tra lại và bấm Nộp bài bình thường.</div>' +
-      '<div class="workspace has-pad exam-ws">' +
-        '<div>' +
-          '<div id="qs"></div>' +
-          (isDeferred
-            ? '<div class="exam-bottom-submit" id="ex-bottom-box">' +
-                '<div><b id="ex-bottom-prog">Đã chọn đáp án: 0/' + picks.length + ' câu</b><div class="muted" style="font-size:.88rem">Kiểm tra lại một lượt rồi bấm nút bên phải để xem điểm và lời giải chi tiết.</div></div>' +
-                '<button type="button" class="btn lg" id="ex-submit-bottom">Nộp bài &amp; Chấm điểm</button>' +
-              '</div>'
-            : '') +
-          '<div id="res"></div>' +
-        '</div>' +
-        '<div class="pad-col" id="padw"></div>' +
-      '</div>';
+      '<div id="ex-time-msg" class="q-hint" hidden>Đã hết thời gian gợi ý (' + ex.minutes + ' phút). Bạn vẫn có thể kiểm tra lại và bấm Nộp bài.</div>' +
+      '<div id="qs"></div>' +
+      (isDeferred
+        ? '<div class="exam-bottom-submit" id="ex-bottom-box">' +
+            '<b id="ex-bottom-prog">Đã chọn đáp án: 0/' + picks.length + ' câu</b>' +
+            '<button type="button" class="btn lg" id="ex-submit-bottom">Nộp bài &amp; Chấm điểm</button>' +
+          '</div>'
+        : '') +
+      '<div id="res"></div>';
 
     app.innerHTML = h;
 
@@ -2171,18 +1751,14 @@ function examRunner(examId){
         if (timeMsgEl) timeMsgEl.hidden = false;
       }
     }, 1000);
+    currentCleanup = stopTimer;
 
     document.getElementById('ex-pause').onclick = function(){
       paused = !paused;
       this.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
     };
-    document.getElementById('ex-hide-t').onclick = function(){
-      timerHidden = !timerHidden;
-      clockEl.hidden = timerHidden;
-      this.textContent = timerHidden ? 'Hiện giờ' : 'Ẩn giờ';
-    };
-    document.getElementById('ex-new').onclick = function(){ startExam(); showToast('Đã tạo mã đề mới.'); };
-    document.getElementById('ex-cfg').onclick = function(){ renderSetup(); };
+    document.getElementById('ex-new').onclick = function(){ startExam(); showToast('✓ Đã tạo đề mới.'); };
+    document.getElementById('ex-cfg').onclick = renderSetup;
 
     function updateAnsweredCount(){
       if (isDeferred) {
@@ -2211,7 +1787,7 @@ function examRunner(examId){
 
       var ratio = right / picks.length;
       var spentSec = Math.max(1, Math.round((Date.now() - startTs) / 1000));
-      var spentTxt = Math.floor(spentSec / 60) + ' phút ' + (spentSec % 60) + ' giây';
+      var spentTxt = Math.floor(spentSec / 60) + 'p ' + (spentSec % 60) + 's';
 
       var saved = loadExams();
       var prev = saved[ex.id] || { attempts: 0 };
@@ -2233,30 +1809,27 @@ function examRunner(examId){
       resEl.innerHTML =
         '<div class="row between">' +
           '<div><div class="score-big">Điểm bài làm: ' + score10(ratio) + ' / 10</div>' +
-          '<div>Mã đề: <b>' + esc(attemptSpec.code) + '</b> · Đúng <b>' + right + '/' + picks.length + '</b> câu · ' +
-          (ex.col ? 'Đã lưu vào Sổ điểm' : 'Thời gian làm: ' + spentTxt) + '</div></div>' +
-          '<span class="badge ' + (ratio >= 0.8 ? 'ok' : (ratio >= 0.65 ? 'pri' : 'warn')) + '">' +
-            (ratio >= 0.8 ? 'Tốt (Giỏi)' : (ratio >= 0.65 ? 'Khá' : (ratio >= 0.5 ? 'Đạt' : 'Cần cố gắng thêm'))) +
-          '</span>' +
+          '<div>Đúng <b>' + right + '/' + picks.length + '</b> câu · Thời gian: ' + spentTxt + (ex.col ? ' · Đã lưu Sổ điểm' : '') + '</div></div>' +
+          '<span class="badge ' + (ratio >= 0.8 ? 'ok' : (ratio >= 0.65 ? 'pri' : 'warn')) + '">' + rankLabel(ratio * 10) + '</span>' +
         '</div>' +
         '<div class="diff-grid">' +
           [1,2,3,4].filter(function(lv){ return byDiff[lv].tot > 0; }).map(function(lv){
             return '<div class="diff-stat"><span class="badge d' + lv + '">' + DIFF_SHORT[lv] + '</span>' +
-              '<div style="font-weight:600;font-size:1.05rem;margin-top:4px">Đúng ' + byDiff[lv].ok + ' / ' + byDiff[lv].tot + '</div></div>';
+              '<div style="font-weight:600;margin-top:4px">Đúng ' + byDiff[lv].ok + '/' + byDiff[lv].tot + '</div></div>';
           }).join('') +
         '</div>' +
         (weakList.length
-          ? '<b>Các bài nên xem lại:</b><ul class="tight">' + weakList.map(function(t){
-              return '<li><a href="#/bai/' + t.id + '">' + esc(t.title) + '</a> (Lớp ' + t.grade + ')</li>';
+          ? '<b>Bài học cần xem lại:</b><ul class="tight">' + weakList.map(function(t){
+              return '<li><a href="#/bai/' + t.id + '">' + esc(displayLessonTitle(t)) + '</a></li>';
             }).join('') + '</ul>'
-          : '<p class="done">✓ Xuất sắc! Bạn đã trả lời đúng toàn bộ câu hỏi trong đề này.</p>') +
-        '<div class="row" style="margin-top:12px">' +
-          '<button type="button" class="btn" id="ex-retry">Làm đề mới (số liệu khác)</button>' +
-          '<button type="button" class="btn alt" id="ex-pdf-both">In đề này + Đáp án</button>' +
+          : '<p class="done">✓ Xuất sắc! Bạn trả lời đúng toàn bộ câu hỏi trong đề.</p>') +
+        '<div class="row" style="margin-top:10px">' +
+          '<button type="button" class="btn" id="ex-retry">Làm đề mới</button>' +
+          '<button type="button" class="btn alt" id="ex-pdf-both">In Đề + Đáp án</button>' +
           '<a class="btn subtle" href="#/tien-do">Xem Sổ điểm</a>' +
         '</div>';
 
-      document.getElementById('ex-retry').onclick = function(){ startExam(); };
+      document.getElementById('ex-retry').onclick = startExam;
       document.getElementById('ex-pdf-both').onclick = function(){ window.KHTNPrint.open(attemptSpec, 'both'); };
       resEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -2278,9 +1851,7 @@ function examRunner(examId){
           instantAnswered++;
           instantResults[i] = { ok: ok, skipped: false, diff: getDiff(p.q) };
           if (progEl) progEl.textContent = 'Đã làm: ' + instantAnswered + '/' + picks.length + ' câu';
-          if (instantAnswered === picks.length) {
-            finishExam(instantResults);
-          }
+          if (instantAnswered === picks.length) finishExam(instantResults);
         }
       });
       qNodes.push(node);
@@ -2289,31 +1860,22 @@ function examRunner(examId){
 
     function handleTriggerSubmit(){
       var unanswered = qNodes.filter(function(n){ return !n._isAnswered(); }).length;
-      if (unanswered > 0 && !confirm('Bạn còn ' + unanswered + ' câu chưa chọn đáp án (sẽ tính 0 điểm câu đó). Bạn vẫn muốn nộp bài chứ?')) {
-        return;
-      }
-      var results = qNodes.map(function(n){ return n._grade(); });
-      finishExam(results);
+      if (unanswered > 0 && !confirm('Còn ' + unanswered + ' câu chưa trả lời (tính 0 điểm câu đó). Bạn vẫn muốn nộp bài?')) return;
+      finishExam(qNodes.map(function(n){ return n._grade(); }));
     }
-
     if (isDeferred) {
       document.getElementById('ex-submit').onclick = handleTriggerSubmit;
       var bSub = document.getElementById('ex-submit-bottom');
       if (bSub) bSub.onclick = handleTriggerSubmit;
     }
-
-    var padEl = window.KHTNPad.create({});
-    document.getElementById('padw').appendChild(padEl);
-    currentCleanup = function(){
-      stopTimer();
-      if (padEl && padEl._destroy) padEl._destroy();
-    };
   }
 
   renderSetup();
 }
 
-// --- Natural Vietnamese Practice Command Parser ---
+// ============================================================================
+// VIEW 6: PRACTICE BUILDER (#/luyen-tap) – CLEAN SINGLE COLUMN
+// ============================================================================
 function parsePracticePrompt(text){
   var s = normVi(text);
   var cfg = { grade:String(getPrefGrade()), stageCap:'all', subj:'all', diff:'all', qtype:'all', count:10, keyword:'' };
@@ -2325,7 +1887,6 @@ function parsePracticePrompt(text){
     if (c >= 1 && c <= 40) cfg.count = c;
     s = s.replace(cm[0], ' ');
   }
-
   if (/hoc ki 1|hk1|giua ki 1/.test(s)) {
     cfg.stageCap = /giua ki 1/.test(s) ? '1' : '2';
     s = s.replace(/giua ki 1|hoc ki 1|hk1/g, ' ');
@@ -2333,49 +1894,21 @@ function parsePracticePrompt(text){
     cfg.stageCap = '3';
     s = s.replace(/giua ki 2/g, ' ');
   }
+  var gm = s.match(/(?:lop|khtn|l)\s*([6-9])/) || s.match(/\b([6-9])\b/);
+  if (gm) { cfg.grade = gm[1]; s = s.replace(gm[0], ' '); }
+  else cfg.grade = 'all';
 
-  var gm = s.match(/(?:lop|khtn|l)\s*([6-9])/);
-  if (!gm) gm = s.match(/\b([6-9])\b/);
-  if (gm) {
-    cfg.grade = gm[1];
-    s = s.replace(gm[0], ' ');
-  } else {
-    cfg.grade = 'all';
-  }
+  if (/van dung cao|rat kho/.test(s)) { cfg.diff = '4'; s = s.replace(/van dung cao|rat kho/g, ' '); }
+  else if (/van dung|nang cao|\bkho\b/.test(s)) { cfg.diff = '34'; s = s.replace(/van dung|nang cao|\bkho\b/g, ' '); }
+  else if (/thong hieu|trung binh/.test(s)) { cfg.diff = '2'; s = s.replace(/thong hieu|trung binh/g, ' '); }
+  else if (/nhan biet|co ban|\bde\b/.test(s)) { cfg.diff = '1'; s = s.replace(/nhan biet|co ban|\bde\b/g, ' '); }
 
-  if (/van dung cao|rat kho/.test(s)) {
-    cfg.diff = '4';
-    s = s.replace(/van dung cao|rat kho/g, ' ');
-  } else if (/van dung|nang cao|\bkho\b/.test(s)) {
-    cfg.diff = '34';
-    s = s.replace(/van dung|nang cao|\bkho\b/g, ' ');
-  } else if (/thong hieu|trung binh/.test(s)) {
-    cfg.diff = '2';
-    s = s.replace(/thong hieu|trung binh/g, ' ');
-  } else if (/nhan biet|co ban|\bde\b/.test(s)) {
-    cfg.diff = '1';
-    s = s.replace(/nhan biet|co ban|\bde\b/g, ' ');
-  }
-
-  if (s.indexOf('dien so') > -1 || s.indexOf('tinh toan') > -1 || s.indexOf('tu luan') > -1) {
-    cfg.qtype = 'num';
-    s = s.replace(/dien so|tinh toan|tu luan/g, ' ');
-  } else if (s.indexOf('trac nghiem') > -1) {
-    cfg.qtype = 'mc';
-    s = s.replace(/trac nghiem/g, ' ');
-  }
-
-  if (/\bhoa\b|hoa hoc/.test(s) && s.indexOf('hoa tri') === -1 && s.indexOf('hoa hop') === -1 && s.indexOf('tien hoa') === -1 && s.indexOf('tieu hoa') === -1) {
-    cfg.subj = 'hoa';
-    s = s.replace(/hoa hoc|\bhoa\b/g, ' ');
+  if (/\bhoa\b|hoa hoc/.test(s) && s.indexOf('hoa tri') === -1 && s.indexOf('tien hoa') === -1 && s.indexOf('tieu hoa') === -1) {
+    cfg.subj = 'hoa'; s = s.replace(/hoa hoc|\bhoa\b/g, ' ');
   } else if (/\bly\b|\bli\b|vat ly|vat li/.test(s)) {
-    cfg.subj = 'ly';
-    s = s.replace(/vat ly|vat li|\bly\b|\bli\b/g, ' ');
+    cfg.subj = 'ly'; s = s.replace(/vat ly|vat li|\bly\b|\bli\b/g, ' ');
   } else if (/\bsinh\b|sinh hoc/.test(s) && s.indexOf('sinh san') === -1 && s.indexOf('sinh truong') === -1 && s.indexOf('sinh thai') === -1) {
-    cfg.subj = 'sinh';
-    s = s.replace(/sinh hoc|\bsinh\b/g, ' ');
-  } else if (/trai dat|thien van|bau troi/.test(s)) {
-    cfg.subj = 'td';
+    cfg.subj = 'sinh'; s = s.replace(/sinh hoc|\bsinh\b/g, ' ');
   }
 
   var stop = /\b(cho|toi|em|be|on|luyen|tap|co|ve|phan|chu de|tong hop|khtn|mon|va|muc|do|tu|den)\b/g;
@@ -2383,9 +1916,8 @@ function parsePracticePrompt(text){
   return cfg;
 }
 
-// --- VIEW 6: Custom Practice Builder ---
 function practice(presetMode){
-  updateNavActive('');
+  updateNavActive('luyen-tap');
   var mistakesMap = loadMistakes();
   var mistakeEntries = Object.keys(mistakesMap).map(function(k){ return mistakesMap[k]; }).filter(function(e){
     return byId[e.topicId] && getMistakeQuestion(e);
@@ -2393,11 +1925,10 @@ function practice(presetMode){
 
   var state = {
     grade: String(getPrefGrade()),
-    stageCap: '1',
+    stageCap: 'all',
     topicId: 'all',
     subj: 'all',
     diff: 'all',
-    qtype: 'all',
     count: 10,
     keyword: '',
     onlyMistakes: presetMode === 'cau-sai',
@@ -2418,7 +1949,7 @@ function practice(presetMode){
       return mistakeEntries.map(function(e){
         var t = byId[e.topicId];
         var q = getMistakeQuestion(e);
-        return { t: t, q: q, qIndex: e.qIndex, d: getDiff(q), weight: 3 };
+        return { t: t, q: q, qIndex: e.qIndex, d: getDiff(q) };
       });
     }
     var pool = [];
@@ -2427,80 +1958,66 @@ function practice(presetMode){
       if (state.topicId !== 'all' && t.id !== state.topicId) return;
       if (state.topicId === 'all' && !allowedByStageCap(t)) return;
       if (state.subj !== 'all' && t.subj !== state.subj) return;
-      var topicText = normVi(t.title + ' ' + t.formulas.join(' ') + ' ' + t.theory.join(' '));
+      var topicText = normVi(t.title + ' ' + (t.chapTitle || '') + ' ' + t.formulas.join(' ') + ' ' + t.theory.join(' '));
       var kw = normVi(state.keyword);
-      var rounds = state.topicId !== 'all' ? 7 : 4;
+      var rounds = state.topicId !== 'all' ? 6 : 4;
       getTopicPool(t, rounds).forEach(function(item){
         var q = item.q;
         var qd = item.d;
         if (state.diff === '12' && qd > 2) return;
         if (state.diff === '34' && qd < 3) return;
         if (['1','2','3','4'].indexOf(state.diff) > -1 && String(qd) !== state.diff) return;
-        if (state.qtype === 'mc' && !q.o) return;
-        if (state.qtype === 'num' && q.n == null) return;
         if (kw && topicText.indexOf(kw) === -1 && normVi(q.q).indexOf(kw) === -1) return;
-        var isWrong = !!mistakesMap[mistakeKey(t.id, q)];
-        var weight = (isWrong ? 3 : 0) + (!isMastered(t.id) ? 1 : 0);
-        pool.push({ t: t, q: q, qIndex: item.staticIdx, d: qd, weight: weight });
+        pool.push({ t: t, q: q, qIndex: item.staticIdx, d: qd });
       });
     });
     return pool;
   }
 
   function renderBuilder(){
-    if (currentCleanup) { currentCleanup(); currentCleanup = null; }
     var h =
-      '<div class="crumb"><a href="#/">Trang chủ</a> › Tự chọn bài luyện</div>' +
-      '<h1>Tự chọn bài luyện theo ý muốn</h1>' +
-      '<p class="muted">Nhập yêu cầu bằng tiếng Việt hoặc chọn lớp &amp; bài học bên dưới:</p>' +
-      '<section class="card" style="margin-bottom:14px">' +
-        '<label for="quick-cmd" style="display:block;font-weight:700;margin-bottom:6px">Gõ nhanh điều bạn muốn luyện:</label>' +
+      '<div class="crumb"><a href="#/">← Mục lục sách</a> › Tự chọn bài luyện</div>' +
+      '<div class="page-top-bar">' +
+        '<h1 style="margin:0">Tự chọn bài luyện tập</h1>' +
+        '<a class="btn sm subtle" href="#/kiem-tra/' + getPrefGrade() + '">Kiểm tra kiến thức gốc ›</a>' +
+      '</div>' +
+      '<section class="card" style="margin-bottom:12px">' +
         '<div class="row">' +
-          '<input type="text" id="quick-cmd" style="flex:1;min-width:220px" placeholder="Ví dụ: 10 câu mol lớp 8, 10 câu tốc độ lớp 7…">' +
-          '<button type="button" class="btn" id="apply-cmd">Chọn ngay</button>' +
-        '</div>' +
-        '<div class="row" style="margin-top:8px">' +
-          '<span class="muted" style="font-size:.86rem">Bấm nhanh:</span>' +
-          '<button type="button" class="chip" data-ex="10 câu mol lớp 8">10 câu bài Mol 8</button>' +
-          '<button type="button" class="chip" data-ex="10 câu hóa lớp 7 giữa kì 1">10 câu Hóa 7 trước GK1</button>' +
-          '<button type="button" class="chip" data-ex="10 câu tốc độ lớp 7">10 câu Tốc độ 7</button>' +
-          '<button type="button" class="chip" data-ex="10 câu áp suất lớp 8">10 câu Áp suất 8</button>' +
+          '<input type="text" id="quick-cmd" style="flex:1;min-width:200px" placeholder="Gõ nhanh: 10 câu mol lớp 8, 10 câu hóa trị lớp 7, 10 câu định luật Ohm…">' +
+          '<button type="button" class="btn" id="apply-cmd">Chọn nhanh</button>' +
         '</div>' +
       '</section>' +
       '<section class="card">' +
         '<div class="form-grid">' +
-          '<div class="field"><label for="p-grade">1. Chọn Lớp</label><select id="p-grade">' +
+          '<div class="field"><label for="p-grade">Khối lớp</label><select id="p-grade">' +
             '<option value="6">Lớp 6</option><option value="7">Lớp 7</option><option value="8">Lớp 8</option><option value="9">Lớp 9</option><option value="all">Tất cả (6–9)</option>' +
           '</select></div>' +
-          '<div class="field"><label for="p-stage">2. Đã học tới đâu?</label><select id="p-stage">' +
-            '<option value="1">Nửa đầu Học kì I (Trước Giữa kì I)</option>' +
-            '<option value="2">Hết Học kì I (Không trộn HK2)</option>' +
-            '<option value="3only">Nửa đầu Học kì II (Trước Giữa kì II)</option>' +
-            '<option value="hk2">Trọn Học kì II</option>' +
+          '<div class="field"><label for="p-stage">Phạm vi học kì</label><select id="p-stage">' +
             '<option value="all">Cả năm học</option>' +
+            '<option value="1">Nửa đầu Học kì I (Trước GK1)</option>' +
+            '<option value="2">Trọn Học kì I</option>' +
+            '<option value="3only">Nửa đầu Học kì II (Trước GK2)</option>' +
+            '<option value="hk2">Trọn Học kì II</option>' +
           '</select></div>' +
-          '<div class="field"><label for="p-topic">3. Chọn riêng 1 bài (nếu muốn)</label><select id="p-topic"></select></div>' +
-          '<div class="field"><label for="p-subj">4. Môn học</label><select id="p-subj">' +
-            '<option value="all">Tất cả môn</option><option value="hoa">Hóa học</option><option value="ly">Vật lí</option><option value="sinh">Sinh học</option><option value="td">Mở đầu / Trái Đất</option>' +
+          '<div class="field"><label for="p-topic">Chọn chương / bài</label><select id="p-topic"></select></div>' +
+          '<div class="field"><label for="p-subj">Mạch kiến thức</label><select id="p-subj">' +
+            '<option value="all">Tất cả</option><option value="hoa">Hóa học</option><option value="ly">Vật lí</option><option value="sinh">Sinh học</option><option value="td">Mở đầu / Trái Đất</option>' +
           '</select></div>' +
-          '<div class="field"><label for="p-diff">5. Độ khó</label><select id="p-diff">' +
-            '<option value="all">Đủ từ Dễ → Khó</option>' +
+          '<div class="field"><label for="p-diff">Độ khó</label><select id="p-diff">' +
+            '<option value="all">Từ Dễ → Khó</option>' +
             '<option value="1">Chỉ câu Dễ</option>' +
-            '<option value="12">Câu Dễ + Trung bình</option>' +
-            '<option value="34">Câu Khá + Khó</option>' +
+            '<option value="12">Dễ + Trung bình</option>' +
+            '<option value="34">Khá + Khó</option>' +
           '</select></div>' +
-          '<div class="field"><label for="p-count">6. Số câu muốn làm</label><select id="p-count">' +
-            '<option value="6">6 câu (Nhanh 5 phút)</option><option value="10">10 câu (Chuẩn 15 phút)</option><option value="15">15 câu</option><option value="20">20 câu (Chuẩn Giữa kì)</option>' +
+          '<div class="field"><label for="p-count">Số lượng câu</label><select id="p-count">' +
+            '<option value="6">6 câu</option><option value="10">10 câu</option><option value="15">15 câu</option><option value="20">20 câu</option>' +
           '</select></div>' +
         '</div>' +
-        '<div class="row" style="margin:8px 0 14px">' +
-          '<label class="row" style="cursor:pointer"><input type="checkbox" id="p-order"> Xếp câu Dễ làm trước, câu Khó làm sau</label>' +
-          (mistakeEntries.length ? '<label class="row" style="cursor:pointer"><input type="checkbox" id="p-only-err"> Chỉ ôn lại các câu từng làm sai (' + mistakeEntries.length + ' câu)</label>' : '') +
-        '</div>' +
-        '<div id="p-summary" class="card soft" style="margin-bottom:14px"></div>' +
+        (mistakeEntries.length ? '<div class="row" style="margin:6px 0 10px"><label class="row" style="cursor:pointer"><input type="checkbox" id="p-only-err"> Chỉ ôn lại các câu từng làm sai (' + mistakeEntries.length + ' câu)</label></div>' : '') +
+        '<div id="p-summary" class="card soft" style="margin-bottom:12px"></div>' +
         '<div class="row">' +
-          '<button type="button" class="btn lg" id="p-start">Bắt đầu làm bài ›</button>' +
-          '<button type="button" class="btn alt" id="p-print">In ra giấy A4 (Đề + Đáp án)</button>' +
+          '<button type="button" class="btn lg" id="p-start">Bắt đầu luyện tập ›</button>' +
+          '<button type="button" class="btn alt" id="p-print">In Đề + Đáp án (A4)</button>' +
         '</div>' +
       '</section>';
 
@@ -2512,27 +2029,39 @@ function practice(presetMode){
     var elSubj = document.getElementById('p-subj');
     var elDiff = document.getElementById('p-diff');
     var elCount = document.getElementById('p-count');
-    var elOrder = document.getElementById('p-order');
     var elOnlyErr = document.getElementById('p-only-err');
     var elSummary = document.getElementById('p-summary');
     var btnStart = document.getElementById('p-start');
     var btnPrint = document.getElementById('p-print');
-    var cachedBuilderSpec = null;
+    var cachedSpec = null;
 
     function rebuildTopicDropdown(){
       var gTopics = D.filter(function(t){
         return (state.grade === 'all' || String(t.grade) === String(state.grade)) && allowedByStageCap(t);
       }).sort(function(a,b){ return a.grade - b.grade || (a.order||99) - (b.order||99); });
 
-      var optsHtml = '<option value="all">-- Tất cả bài trong phần đã chọn (' + gTopics.length + ' bài) --</option>';
+      var optsHtml = '<option value="all">-- Tất cả (' + gTopics.length + ' bài) --</option>';
       gTopics.forEach(function(t){
-        optsHtml += '<option value="' + t.id + '">' + (state.grade === 'all' ? 'Lớp ' + t.grade + ' – ' : '') + esc(t.title) + '</option>';
+        optsHtml += '<option value="' + t.id + '">' + (state.grade === 'all' ? 'L' + t.grade + ' · ' : '') + esc(displayLessonTitle(t)) + '</option>';
       });
       elTopic.innerHTML = optsHtml;
-      if (state.topicId !== 'all' && !gTopics.some(function(t){ return t.id === state.topicId; })) {
-        state.topicId = 'all';
-      }
+      if (state.topicId !== 'all' && !gTopics.some(function(t){ return t.id === state.topicId; })) state.topicId = 'all';
       elTopic.value = state.topicId;
+    }
+
+    function updateSummary(){
+      cachedSpec = null;
+      var pool = collectPool();
+      var take = Math.min(pool.length, Number(state.count) || 10);
+      if (!pool.length) {
+        elSummary.innerHTML = 'Chưa có câu hỏi khớp bộ lọc này. Hãy chọn <b>Cả năm học</b> hoặc <b>Tất cả</b> mạch kiến thức.';
+        btnStart.disabled = true;
+        btnPrint.disabled = true;
+      } else {
+        elSummary.innerHTML = '✓ Có sẵn <b>' + pool.length + '+ câu</b> phù hợp · Sẽ lấy <b>' + take + ' câu</b> (xếp từ Dễ → Khó).';
+        btnStart.disabled = false;
+        btnPrint.disabled = false;
+      }
     }
 
     function syncInputs(){
@@ -2541,36 +2070,9 @@ function practice(presetMode){
       rebuildTopicDropdown();
       elSubj.value = state.subj;
       elDiff.value = state.diff;
-      if (!Array.prototype.some.call(elCount.options, function(o){ return String(o.value) === String(state.count); })) {
-        var opt = document.createElement('option');
-        opt.value = state.count;
-        opt.textContent = state.count + ' câu';
-        elCount.appendChild(opt);
-      }
       elCount.value = String(state.count);
-      elOrder.checked = state.sortEasyToHard;
       if (elOnlyErr) elOnlyErr.checked = state.onlyMistakes;
-      cachedBuilderSpec = null;
       updateSummary();
-    }
-
-    function updateSummary(){
-      cachedBuilderSpec = null;
-      var pool = collectPool();
-      var take = Math.min(pool.length, Number(state.count) || 10);
-      if (!pool.length) {
-        elSummary.innerHTML = '<b>Chưa có câu hỏi khớp lựa chọn này.</b> Bạn hãy chọn mục "Cả năm học" hoặc chọn "Tất cả môn" nhé.';
-        btnStart.disabled = true;
-        btnPrint.disabled = true;
-      } else {
-        var scopeNote = state.topicId !== 'all' && byId[state.topicId]
-          ? ('Chỉ hỏi riêng bài: <b>' + esc(byId[state.topicId].title) + '</b>')
-          : ('Tìm thấy <b>' + pool.length + '+ câu phù hợp</b>');
-        elSummary.innerHTML = '✓ ' + scopeNote + ' · Sẽ lấy ra <b>' + take + ' câu</b>' +
-          (state.sortEasyToHard ? ' (sắp từ Dễ → Khó)' : '') + '.';
-        btnStart.disabled = false;
-        btnPrint.disabled = false;
-      }
     }
 
     function pickItems(){
@@ -2582,21 +2084,19 @@ function practice(presetMode){
         seen[x.q.q] = true;
         return true;
       });
-      var chosen = uniq.slice(0, take);
-      if (state.sortEasyToHard) chosen.sort(function(a, b){ return a.d - b.d; });
-      return chosen;
+      return uniq.slice(0, take).sort(function(a, b){ return a.d - b.d; });
     }
 
-    function makeFreshBuilderSpec(){
+    function makeSpec(){
       var picks = pickItems();
       var singleT = state.topicId !== 'all' ? byId[state.topicId] : null;
-      cachedBuilderSpec = window.KHTNPrint.prepare({
+      cachedSpec = window.KHTNPrint.prepare({
         prefix: state.grade === 'all' ? 'LT' : 'L' + state.grade,
-        docTitle: singleT ? ('ĐỀ KIỂM TRA 15 PHÚT – ' + singleT.title.toUpperCase()) : 'PHIẾU BÀI TẬP TỰ LUYỆN KHTN',
-        subtitle: singleT ? ('Lớp ' + singleT.grade + ' · Chỉ gồm bài ' + singleT.title) : ('Lớp ' + state.grade + ' · Đúng phạm vi đã chọn'),
-        items: picks.map(function(p){ return { topicTitle: singleT ? '' : p.t.title.replace(/^Bài \d+:\s*/, ''), q: p.q }; })
+        docTitle: singleT ? ('PHIẾU BÀI TẬP – ' + displayLessonTitle(singleT).toUpperCase()) : 'PHIẾU BÀI TẬP TỰ LUYỆN KHTN',
+        subtitle: singleT ? ('KHTN Lớp ' + singleT.grade) : ('Phạm vi tự chọn · Lớp ' + state.grade),
+        items: picks.map(function(p){ return { topicTitle: singleT ? '' : (p.t.sgk || p.t.title), q: p.q }; })
       });
-      return cachedBuilderSpec;
+      return cachedSpec;
     }
 
     elGrade.onchange = function(){ state.grade = elGrade.value; state.topicId = 'all'; rebuildTopicDropdown(); updateSummary(); };
@@ -2605,7 +2105,6 @@ function practice(presetMode){
     elSubj.onchange = function(){ state.subj = elSubj.value; updateSummary(); };
     elDiff.onchange = function(){ state.diff = elDiff.value; updateSummary(); };
     elCount.onchange = function(){ state.count = parseInt(elCount.value, 10) || 10; updateSummary(); };
-    elOrder.onchange = function(){ state.sortEasyToHard = elOrder.checked; updateSummary(); };
     if (elOnlyErr) elOnlyErr.onchange = function(){ state.onlyMistakes = elOnlyErr.checked; updateSummary(); };
 
     var cmdInput = document.getElementById('quick-cmd');
@@ -2619,40 +2118,31 @@ function practice(presetMode){
       state.keyword = '';
       state.topicId = 'all';
       state.onlyMistakes = false;
-
       if (parsed.keyword) {
-        var candidates = D.filter(function(t){
-          return (state.grade === 'all' || String(t.grade) === String(state.grade)) &&
-                 normVi(t.title).indexOf(parsed.keyword) > -1;
+        var cands = D.filter(function(t){
+          return (state.grade === 'all' || String(t.grade) === String(state.grade)) && normVi(t.title).indexOf(parsed.keyword) > -1;
         });
-        if (candidates.length === 1) {
-          state.grade = String(candidates[0].grade);
+        if (cands.length === 1) {
+          state.grade = String(cands[0].grade);
           state.stageCap = 'all';
-          state.topicId = candidates[0].id;
+          state.topicId = cands[0].id;
           state.subj = 'all';
         } else {
-          state.stageCap = parsed.stageCap === 'all' ? 'all' : parsed.stageCap;
           state.keyword = parsed.keyword;
         }
       }
       syncInputs();
-      showToast('✓ Đã chọn bài theo yêu cầu của bạn!');
+      showToast('✓ Đã lọc câu hỏi theo yêu cầu.');
     }
     document.getElementById('apply-cmd').onclick = function(){ applyPrompt(cmdInput.value); };
     cmdInput.onkeydown = function(e){ if (e.key === 'Enter') applyPrompt(cmdInput.value); };
-    app.querySelectorAll('[data-ex]').forEach(function(chip){
-      chip.onclick = function(){
-        cmdInput.value = chip.dataset.ex;
-        applyPrompt(chip.dataset.ex);
-      };
-    });
 
     btnStart.onclick = function(){
       var singleT = state.topicId !== 'all' ? byId[state.topicId] : null;
-      runPracticeSession(pickItems(), singleT ? ('Luyện bài: ' + singleT.title) : null);
+      runPracticeSession(pickItems(), singleT ? displayLessonTitle(singleT) : null);
     };
     btnPrint.onclick = function(){
-      window.KHTNPrint.open(cachedBuilderSpec || makeFreshBuilderSpec(), 'both', { onRegenerate: makeFreshBuilderSpec });
+      window.KHTNPrint.open(cachedSpec || makeSpec(), 'both', { onRegenerate: makeSpec });
     };
 
     syncInputs();
@@ -2663,27 +2153,25 @@ function practice(presetMode){
 
   function runPracticeSession(picks, customTitle){
     if (!picks.length) { renderBuilder(); return; }
-    var title = customTitle || ('Bài luyện tập (' + picks.length + ' câu · Dễ → Khó)');
+    var title = customTitle || ('Luyện tập (' + picks.length + ' câu · Dễ → Khó)');
     var sheetSpec = window.KHTNPrint.prepare({
       prefix: 'LT',
       docTitle: 'PHIẾU LUYỆN TẬP KHTN',
       subtitle: title,
-      items: picks.map(function(x){ return { topicTitle: x.t.title.replace(/^Bài \d+:\s*/, ''), q: x.q }; })
+      items: picks.map(function(x){ return { topicTitle: x.t.sgk || x.t.title, q: x.q }; })
     });
 
     var h =
-      '<div class="crumb"><a href="#/">Trang chủ</a> › <a href="#/luyen-tap" id="back-builder">Tự chọn bài luyện</a> › Đang làm bài</div>' +
-      '<div class="row between">' +
-        '<div><h1 style="margin-bottom:.15em">' + esc(title) + '</h1><div class="muted">Mã phiếu: <b>' + esc(sheetSpec.code) + '</b></div></div>' +
+      '<div class="crumb"><a href="#/luyen-tap" id="back-builder">← Tự chọn bài luyện</a> › Đang làm bài</div>' +
+      '<div class="page-top-bar">' +
+        '<h1 style="margin:0">' + esc(title) + '</h1>' +
         '<div class="row">' +
-          '<button type="button" class="btn sm alt" id="run-pdf">In phiếu này (Đề + Đáp án)</button>' +
-          '<button type="button" class="btn sm subtle" id="chg-cfg">Chọn bài khác</button>' +
+          '<button type="button" class="btn sm alt" id="run-pdf">In Đề + Đáp án</button>' +
+          '<button type="button" class="btn sm subtle" id="chg-cfg">Đổi bài khác</button>' +
         '</div>' +
       '</div>' +
-      '<div class="workspace has-pad">' +
-        '<div><div id="qs"></div><div id="res"></div></div>' +
-        '<div class="pad-col" id="padw"></div>' +
-      '</div>';
+      '<div id="qs"></div>' +
+      '<div id="res"></div>';
 
     app.innerHTML = h;
     document.getElementById('chg-cfg').onclick = renderBuilder;
@@ -2713,14 +2201,14 @@ function practice(presetMode){
             resEl.className = 'card highlight';
             resEl.style.marginTop = '12px';
             resEl.innerHTML =
-              '<div class="score-big">Điểm bài luyện: ' + score10(ratio) + ' / 10</div>' +
+              '<div class="score-big">Kết quả: ' + score10(ratio) + ' / 10</div>' +
               '<p>Đúng <b>' + right + '/' + picks.length + '</b> câu.</p>' +
               (weakList.length
                 ? '<b>Các bài nên xem lại:</b><ul class="tight">' + weakList.map(function(t){
-                    return '<li><a href="#/bai/' + t.id + '">' + esc(t.title) + '</a> (Lớp ' + t.grade + ')</li>';
+                    return '<li><a href="#/bai/' + t.id + '">Lớp ' + t.grade + ' · ' + esc(displayLessonTitle(t)) + '</a></li>';
                   }).join('') + '</ul>'
-                : '<p class="done">✓ Xuất sắc! Bạn trả lời đúng toàn bộ câu hỏi.</p>') +
-              '<div class="row" style="margin-top:12px">' +
+                : '<p class="done">✓ Xuất sắc! Bạn trả lời đúng tất cả câu hỏi.</p>') +
+              '<div class="row" style="margin-top:10px">' +
                 '<button type="button" class="btn" id="re-cfg">Làm lượt mới</button>' +
                 '<button type="button" class="btn alt" id="s-pdf-both">In Đề + Đáp án</button>' +
               '</div>';
@@ -2731,19 +2219,17 @@ function practice(presetMode){
         }
       }));
     });
-
-    var padEl = window.KHTNPad.create({});
-    document.getElementById('padw').appendChild(padEl);
-    currentCleanup = function(){ if (padEl && padEl._destroy) padEl._destroy(); };
   }
 
   renderBuilder();
 }
 
-// --- VIEW 7: Placement Test ---
+// ============================================================================
+// VIEW 7: PLACEMENT TEST (#/kiem-tra/:g) – CLEAN SINGLE ROW TOOLBAR, NO SCRATCHPAD
+// ============================================================================
 function placement(g){
   if ([6,7,8,9].indexOf(g) === -1) g = getPrefGrade();
-  updateNavActive('');
+  updateNavActive('luyen-tap');
 
   var pool = D.filter(function(t){ return t.grade < g || (g === 6 && t.grade === 6); });
   var picks = [];
@@ -2755,34 +2241,33 @@ function placement(g){
     picks.push({ t: t, q: chosen.q, qIndex: chosen.staticIdx, d: chosen.d });
   });
   picks = shuffle(picks).slice(0, 12).sort(function(a, b){ return a.d - b.d; });
+
   var sheetSpec = window.KHTNPrint.prepare({
     prefix: 'KN' + g,
     docTitle: 'ĐỀ KIỂM TRA KIẾN THỨC GỐC TRƯỚC LỚP ' + g,
-    subtitle: 'Kiểm tra nhanh kiến thức nền tảng trước khi học KHTN Lớp ' + g,
-    items: picks.map(function(x){ return { topicTitle: x.t.title.replace(/^Bài \d+:\s*/, ''), q: x.q }; })
+    subtitle: 'Rà soát nhanh kiến thức nền tảng trước khi học KHTN Lớp ' + g,
+    items: picks.map(function(x){ return { topicTitle: 'Lớp ' + x.t.grade + ' · ' + (x.t.sgk || x.t.title), q: x.q }; })
   });
 
   var h =
-    '<div class="crumb"><a href="#/">Trang chủ</a> › Kiểm tra gốc Lớp ' + g + '</div>' +
-    '<div class="row between">' +
-      '<h1>Kiểm tra kiến thức gốc trước khi học Lớp ' + g + '</h1>' +
-      '<div class="row">' +
+    '<div class="crumb"><a href="#/lop/' + g + '">← Mục lục Lớp ' + g + '</a> › Kiểm tra gốc</div>' +
+    '<div class="page-top-bar">' +
+      '<h1 style="margin:0">Kiểm tra kiến thức gốc – Lớp ' + g + '</h1>' +
+      '<div class="toc-grades">' +
         [6,7,8,9].map(function(gr){
-          return '<a class="btn sm ' + (gr === g ? 'on' : 'subtle') + '" href="#/kiem-tra/' + gr + '">Lớp ' + gr + '</a>';
+          return '<a class="toc-grade-btn ' + (gr === g ? 'on' : '') + '" href="#/kiem-tra/' + gr + '">Lớp ' + gr + '</a>';
         }).join('') +
       '</div>' +
     '</div>' +
-    '<div class="row between" style="margin-bottom:8px">' +
-      '<span class="muted">Gồm <b>' + picks.length + ' câu cơ bản</b> để biết phần nào còn hổng và cần xem lại.</span>' +
+    '<div class="page-top-bar" style="margin-bottom:10px">' +
+      '<span class="muted" style="font-size:.89rem">Gồm <b>' + picks.length + ' câu cơ bản</b> để phát hiện nhanh phần kiến thức nền cần ôn lại.</span>' +
       '<div class="row">' +
         '<button type="button" class="btn sm alt" id="pl-top-pdf">In Đề + Đáp án</button>' +
         '<button type="button" class="btn sm subtle" id="pl-reroll">Đổi đề khác</button>' +
       '</div>' +
     '</div>' +
-    '<div class="workspace has-pad">' +
-      '<div><div id="qs"></div><div id="res"></div></div>' +
-      '<div class="pad-col" id="padw"></div>' +
-    '</div>';
+    '<div id="qs"></div>' +
+    '<div id="res"></div>';
 
   app.innerHTML = h;
   document.getElementById('pl-top-pdf').onclick = function(){ window.KHTNPrint.open(sheetSpec, 'both'); };
@@ -2797,7 +2282,7 @@ function placement(g){
       topic: p.t,
       qIndex: p.qIndex,
       order: sheetSpec.items[i] ? sheetSpec.items[i].choices : null,
-      showTopic: false,
+      showTopic: true,
       hintText: pickHint(p.t, p.q),
       onAnswer: function(ok){
         answered++;
@@ -2826,10 +2311,10 @@ function placement(g){
             (weak.length
               ? '<b>Các bài gốc nên xem lại:</b><ul class="tight">' +
                 weak.map(function(t){
-                  return '<li><a href="#/bai/' + t.id + '">' + esc(t.title) + '</a> (Lớp ' + t.grade + ' · ' + SUBJ[t.subj] + ')</li>';
+                  return '<li><a href="#/bai/' + t.id + '">Lớp ' + t.grade + ' · ' + esc(displayLessonTitle(t)) + '</a></li>';
                 }).join('') + '</ul>'
-              : '<p class="done">✓ Nền tảng của bạn rất vững để học Lớp ' + g + '.</p>') +
-            '<div class="row" style="margin-top:12px">' +
+              : '<p class="done">✓ Nền tảng rất vững để học Lớp ' + g + '.</p>') +
+            '<div class="row" style="margin-top:10px">' +
               '<button type="button" class="btn" id="re">Làm đề khác</button>' +
               '<button type="button" class="btn alt" id="pl-pdf">In Đề + Đáp án</button>' +
             '</div>';
@@ -2840,17 +2325,15 @@ function placement(g){
       }
     }));
   });
-
-  var padEl = window.KHTNPad.create({});
-  document.getElementById('padw').appendChild(padEl);
-  currentCleanup = function(){ if (padEl && padEl._destroy) padEl._destroy(); };
 }
 
-// --- VIEW 8: Notebook ---
+// ============================================================================
+// VIEW 8: NOTEBOOK (#/so-tay)
+// ============================================================================
 function notebook(initialTab){
   updateNavActive('so-tay');
   var tab = initialTab === 'mistakes' ? 'mistakes' : 'formulas';
-  var gradeFilter = 'all';
+  var gradeFilter = String(getPrefGrade());
   var subjFilter = 'all';
   var query = '';
 
@@ -2861,25 +2344,27 @@ function notebook(initialTab){
       .sort(function(a,b){ return (b.lastWrongAt || 0) - (a.lastWrongAt || 0); });
 
     var h =
-      '<div class="crumb"><a href="#/">Trang chủ</a> › Sổ tay công thức &amp; Câu hay sai</div>' +
-      '<div class="row between">' +
-        '<h1>Sổ tay Công thức &amp; Câu hay sai</h1>' +
+      '<div class="crumb"><a href="#/">← Mục lục sách</a> › Công thức &amp; Câu hay sai</div>' +
+      '<div class="page-top-bar">' +
+        '<h1 style="margin:0">Sổ tay Công thức &amp; Câu hay sai</h1>' +
         '<button type="button" class="btn sm alt" id="nb-print-btn">' +
-          (tab === 'formulas' ? 'In Sổ tay đang xem' : 'In phiếu câu hay sai') +
+          (tab === 'formulas' ? 'In Sổ tay đang xem' : 'In phiếu câu sai') +
         '</button>' +
       '</div>' +
       '<div class="tabs">' +
-        '<button type="button" data-tab="formulas" class="' + (tab === 'formulas' ? 'on' : '') + '">Bảng công thức</button>' +
+        '<button type="button" data-tab="formulas" class="' + (tab === 'formulas' ? 'on' : '') + '">Bảng công thức theo SGK</button>' +
         '<button type="button" data-tab="mistakes" class="' + (tab === 'mistakes' ? 'on' : '') + '">Câu từng làm sai (' + mList.length + ')</button>' +
       '</div>';
 
     if (tab === 'formulas') {
       h +=
-        '<input type="search" id="nb-search" placeholder="Nhập tên công thức hoặc bài học (VD: mol, áp suất, hóa trị)…" value="' + esc(query) + '">' +
-        '<div class="filters" id="nb-g">' +
-          ['all','6','7','8','9'].map(function(g){
-            return '<button type="button" data-g="' + g + '" class="' + (gradeFilter === g ? 'on' : '') + '">' + (g === 'all' ? 'Tất cả lớp' : 'Lớp ' + g) + '</button>';
-          }).join('') +
+        '<div class="toc-toolbar">' +
+          '<div class="toc-search-wrap"><input type="search" id="nb-search" placeholder="Tìm nhanh công thức (VD: mol, định luật Ohm, áp suất)…" value="' + esc(query) + '"></div>' +
+          '<div class="toc-grades" id="nb-g">' +
+            ['6','7','8','9','all'].map(function(gv){
+              return '<button type="button" class="toc-grade-btn ' + (gradeFilter === gv ? 'on' : '') + '" data-g="' + gv + '">' + (gv === 'all' ? 'Tất cả' : 'Lớp ' + gv) + '</button>';
+            }).join('') +
+          '</div>' +
         '</div>' +
         '<div class="filters" id="nb-s">' +
           ['all'].concat(Object.keys(SUBJ)).map(function(s){
@@ -2905,9 +2390,9 @@ function notebook(initialTab){
           if (gradeFilter !== 'all' && String(t.grade) !== gradeFilter) return;
           if (subjFilter !== 'all' && t.subj !== subjFilter) return;
           var hit = t.formulas.filter(function(f){
-            return !q || normVi(f + ' ' + t.title).indexOf(q) > -1;
+            return !q || normVi(f + ' ' + t.title + ' ' + (t.chapTitle || '')).indexOf(q) > -1;
           });
-          if (hit.length) groups.push({ topic: t, grade: t.grade, title: t.title, formulas: hit, types: TYPES[t.id] || null });
+          if (hit.length) groups.push({ topic: t, grade: t.grade, title: (t.chapCode ? t.chapCode + ' · ' : '') + displayLessonTitle(t), formulas: hit, types: TYPES[t.id] || null });
         });
         return groups;
       }
@@ -2915,24 +2400,25 @@ function notebook(initialTab){
       function showFormulas(){
         var groups = matchingFormulaGroups();
         var out = '';
-        groups.forEach(function(g){
-          var t = g.topic;
+        groups.forEach(function(grp){
+          var t = grp.topic;
           out +=
-            '<div class="card" style="margin:10px 0">' +
+            '<div class="card" style="margin:9px 0">' +
               '<div class="row between">' +
-                '<div>' + tag(t.subj) + ' <a href="#/bai/' + t.id + '" style="font-weight:700">Lớp ' + t.grade + (t.term ? ' (' + t.term + ')' : '') + ' – ' + esc(t.title) + '</a></div>' +
-                '<a class="btn sm subtle" href="#/bai/' + t.id + '">Mở bài học ›</a>' +
+                '<div>' + tag(t.subj) + ' <a href="#/bai/' + t.id + '" style="font-weight:700;text-decoration:none">Lớp ' + t.grade + ' · ' + esc((t.chapCode ? t.chapCode + ' – ' : '') + displayLessonTitle(t)) + '</a></div>' +
+                '<a class="btn sm subtle" href="#/bai/' + t.id + '">Mở bài ›</a>' +
               '</div>' +
-              g.formulas.map(function(f){ return '<div class="formula">' + fmtFormula(f) + '</div>'; }).join('') +
+              grp.formulas.map(function(f){ return '<div class="formula">' + fmtFormula(f) + '</div>'; }).join('') +
             '</div>';
         });
-        document.getElementById('nb-list').innerHTML = out || '<div class="empty">Không có công thức nào khớp từ khóa này.</div>';
+        document.getElementById('nb-list').innerHTML = out || '<div class="empty">Không tìm thấy công thức khớp từ khóa này.</div>';
       }
       showFormulas();
       document.getElementById('nb-search').oninput = function(e){ query = e.target.value; showFormulas(); };
       app.querySelectorAll('#nb-g button').forEach(function(b){
         b.onclick = function(){
           gradeFilter = b.dataset.g;
+          if (gradeFilter !== 'all') setPrefGrade(Number(gradeFilter));
           app.querySelectorAll('#nb-g button').forEach(function(x){ x.classList.toggle('on', x === b); });
           showFormulas();
         };
@@ -2949,7 +2435,7 @@ function notebook(initialTab){
         if (!groups.length) return;
         var spec = window.KHTNPrint.prepare({
           prefix: gradeFilter === 'all' ? 'ST' : 'ST' + gradeFilter,
-          subtitle: 'Sổ tay công thức KHTN' + (gradeFilter !== 'all' ? ' · Lớp ' + gradeFilter : '') + (subjFilter !== 'all' ? ' · ' + SUBJ[subjFilter] : ''),
+          subtitle: 'Sổ tay công thức KHTN' + (gradeFilter !== 'all' ? ' · Lớp ' + gradeFilter : ''),
           formulaGroups: groups
         });
         window.KHTNPrint.open(spec, 'formulas');
@@ -2962,187 +2448,170 @@ function notebook(initialTab){
         var spec = window.KHTNPrint.prepare({
           prefix: 'CS',
           docTitle: 'PHIẾU ÔN LẠI CÁC CÂU HAY SAI',
-          subtitle: 'Danh sách câu cần làm lại cho nhớ kỹ (' + mList.length + ' câu)',
+          subtitle: 'Tổng hợp ' + mList.length + ' câu cần rèn lại',
           items: mList.map(function(m){
             var t = byId[m.topicId];
-            return { topicTitle: 'Lớp ' + t.grade + ' · ' + t.title.replace(/^Bài \d+:\s*/, ''), q: getMistakeQuestion(m) };
+            return { topicTitle: 'Lớp ' + t.grade + ' · ' + (t.sgk || t.title), q: getMistakeQuestion(m) };
           })
         });
         window.KHTNPrint.open(spec, 'both');
       };
 
       if (!mList.length) {
-        box.innerHTML = '<div class="empty">Hiện tại chưa có câu làm sai nào. Khi làm bài nếu có câu nhầm, hệ thống sẽ tự lưu vào đây để dễ ôn lại.</div>';
+        box.innerHTML = '<div class="empty">Chưa có câu làm sai nào.</div>';
       } else {
         var out =
-          '<div class="helper-tip">' +
-            '<span>Khi bấm <b>Làm lại ngay</b> và trả lời đúng, câu đó sẽ tự động được gỡ khỏi danh sách sai.</span>' +
-            '<a class="btn sm" href="#/luyen-tap/cau-sai">Làm lại ' + mList.length + ' câu này ›</a>' +
+          '<div class="toc-bookmark">' +
+            '<span>Khi làm lại đúng, câu hỏi sẽ tự động được gỡ khỏi danh sách sai.</span>' +
+            '<a class="btn sm" href="#/luyen-tap/cau-sai">Luyện lại ' + mList.length + ' câu này ›</a>' +
           '</div>';
-
         mList.forEach(function(m){
           var t = byId[m.topicId];
           var q = getMistakeQuestion(m);
           var ans = q.o ? q.o[0] : (fmtNum(q.n) + (q.u ? ' ' + q.u : ''));
           out +=
-            '<div class="card" style="margin:10px 0">' +
+            '<div class="card" style="margin:9px 0">' +
               '<div class="row between">' +
-                '<div>' + tag(t.subj) + ' ' + diffBadge(q) + ' <a href="#/bai/' + t.id + '"><b>Lớp ' + t.grade + ' – ' + esc(t.title) + '</b></a></div>' +
-                '<span class="badge warn">Đã nhầm ' + (m.count || 1) + ' lần</span>' +
+                '<div>' + tag(t.subj) + ' ' + diffBadge(q) + ' <a href="#/bai/' + t.id + '"><b>Lớp ' + t.grade + ' · ' + esc(displayLessonTitle(t)) + '</b></a></div>' +
+                '<span class="badge warn">Nhầm ' + (m.count || 1) + ' lần</span>' +
               '</div>' +
-              '<p style="margin:.6em 0 .4em"><b>Câu hỏi:</b> ' + fmtMath(q.q) + '</p>' +
-              '<div class="fb ok"><b>Đáp án đúng:</b> ' + fmtMath(ans) + (q.w ? '<br><b>Cách giải:</b> ' + fmtMath(q.w) : '') + '</div>' +
+              '<p style="margin:.5em 0 .4em"><b>Câu hỏi:</b> ' + fmtMath(q.q) + '</p>' +
+              '<div class="fb ok"><b>Đáp án đúng:</b> ' + fmtMath(ans) + (q.w ? '<br><b>Giải thích:</b> ' + fmtMath(q.w) : '') + '</div>' +
             '</div>';
         });
         box.innerHTML = out;
       }
     }
   }
-
   render();
 }
 
-// --- VIEW 9: Progress ---
+// ============================================================================
+// VIEW 9: PROGRESS & GRADEBOOK (#/tien-do) – ALL 4 GRADES 6, 7, 8, 9
+// ============================================================================
 function progress(){
   updateNavActive('tien-do');
-  var prog = loadProg();
-  var examStats = loadExams();
-  var meta = loadMeta();
-  var mistakes = loadMistakes();
-  var mistakeCount = Object.keys(mistakes).length;
-  var completed = D.filter(function(t){ return isMastered(t.id); }).length;
-  var scores = Object.keys(prog).map(function(id){ return prog[id].best; }).filter(function(v){ return typeof v === 'number'; });
-  var avgScore = scores.length ? score10(scores.reduce(function(a,b){ return a+b; }, 0) / scores.length) : '—';
-  var doneExamIds = Object.keys(examStats).filter(function(id){ return examById[id]; });
+  var selectedGbGrade = getPrefGrade();
 
-  var h =
-    '<div class="crumb"><a href="#/">Trang chủ</a> › Sổ điểm &amp; Tiến độ học tập</div>' +
-    '<h1>Sổ điểm &amp; Kết quả học tập</h1>' +
-    '<div class="grid stats" style="margin-bottom:16px">' +
-      '<div class="card"><div class="muted">Bài đã nắm vững</div><div class="stat-val">' + completed + ' / ' + D.length + '</div></div>' +
-      '<div class="card"><div class="muted">Điểm TB bài học</div><div class="stat-val">' + avgScore + '</div></div>' +
-      '<div class="card"><div class="muted">Đề KT đã làm</div><div class="stat-val">' + doneExamIds.length + ' / ' + EXAMS.length + '</div></div>' +
-      '<div class="card"><div class="muted">Câu cần ôn lại</div><div class="stat-val">' + mistakeCount + '</div></div>' +
-    '</div>' +
-    '<div id="prog-gb-7"></div>' +
-    '<div id="prog-gb-8"></div>';
+  function render(){
+    var prog = loadProg();
+    var examStats = loadExams();
+    var mistakes = loadMistakes();
+    var mistakeCount = Object.keys(mistakes).length;
+    var completed = D.filter(function(t){ return isMastered(t.id); }).length;
+    var scores = Object.keys(prog).map(function(id){ return prog[id].best; }).filter(function(v){ return typeof v === 'number'; });
+    var avgScore = scores.length ? score10(scores.reduce(function(a,b){ return a+b; }, 0) / scores.length) : '—';
+    var doneExamIds = Object.keys(examStats).filter(function(id){ return examById[id]; });
 
-  if (meta.lastPlacement) {
-    var lp = meta.lastPlacement;
-    var dt = new Date(lp.date).toLocaleDateString('vi-VN');
-    h +=
-      '<section class="card highlight" style="margin-bottom:16px">' +
-        '<div class="row between"><b>Kết quả Kiểm tra gốc gần nhất (Lớp ' + lp.grade + ')</b><span class="badge pri">' + esc(lp.score10) + ' / 10 · ' + dt + '</span></div>' +
-        '<p style="margin:.45em 0">Đúng ' + lp.right + '/' + lp.total + ' câu.</p>';
-    if (lp.weakIds && lp.weakIds.length) {
-      h += '<ul class="tight">' + lp.weakIds.map(function(id){
-        var t = byId[id];
-        if (!t) return '';
-        var doneNow = isMastered(id);
-        return '<li><a href="#/bai/' + id + '">' + esc(t.title) + '</a> (Lớp ' + t.grade + ') ' +
-          (doneNow ? '<span class="badge ok">Đã ôn đạt ✓</span>' : '<span class="badge warn">Chưa ôn đạt</span>') + '</li>';
-      }).join('') + '</ul>';
-    } else {
-      h += '<div class="done">Nền tảng rất tốt, không có bài nào bị hổng.</div>';
-    }
-    h += '</section>';
-  }
-
-  h += '<div class="grid two">';
-  h += '<section class="card"><h2 style="margin-top:0">Tiến độ theo từng Lớp</h2>';
-  [6,7,8,9].forEach(function(g){
-    var l = D.filter(function(t){ return t.grade === g; });
-    var p = pct(l);
-    h +=
-      '<div style="margin:10px 0">' +
-        '<div class="row between"><a href="#/lop/' + g + '"><b>Lớp ' + g + '</b></a><span>' + p + '% (' + l.filter(function(t){ return isMastered(t.id); }).length + '/' + l.length + ' bài)</span></div>' +
-        '<div class="bar"><i style="width:' + p + '%"></i></div>' +
-      '</div>';
-  });
-  h += '</section>';
-
-  h += '<section class="card"><h2 style="margin-top:0">Mức nắm vững theo Môn</h2>';
-  Object.keys(SUBJ).forEach(function(s){
-    var l = D.filter(function(t){ return t.subj === s; });
-    var p = pct(l);
-    h +=
-      '<div style="margin:10px 0">' +
-        '<div class="row between"><div>' + tag(s) + '</div><span>' + p + '% (' + l.filter(function(t){ return isMastered(t.id); }).length + '/' + l.length + ' bài)</span></div>' +
-        '<div class="bar"><i style="width:' + p + '%"></i></div>' +
-      '</div>';
-  });
-  h += '</section></div>';
-
-  h +=
-    '<h2>Chuyển sổ điểm sang máy khác hoặc làm mới</h2>' +
-    '<div class="card">' +
-      '<p class="muted" style="margin-top:0">Điểm số luôn tự động lưu trên máy này. Nếu muốn chuyển điểm sang điện thoại hoặc máy tính khác, bấm <b>Lưu sổ điểm về máy</b> rồi mở lại trên máy mới.</p>' +
-      '<div class="row">' +
-        '<button type="button" class="btn sm alt" id="btn-export">Lưu sổ điểm về máy</button>' +
-        '<button type="button" class="btn sm subtle" id="btn-import">Mở sổ điểm đã lưu</button>' +
-        '<input type="file" id="file-import" accept="application/json,.json" hidden>' +
-        '<button type="button" class="btn sm danger" id="rs">Xóa điểm để học lại</button>' +
+    var h =
+      '<div class="crumb"><a href="#/">← Mục lục sách</a> › Sổ điểm &amp; Tiến độ</div>' +
+      '<div class="page-top-bar">' +
+        '<h1 style="margin:0">Sổ điểm &amp; Tiến độ học tập</h1>' +
+        '<div class="toc-grades" id="prog-g-tabs">' +
+          [6,7,8,9].map(function(gr){
+            return '<button type="button" class="toc-grade-btn ' + (gr === selectedGbGrade ? 'on' : '') + '" data-pg="' + gr + '">Lớp ' + gr + '</button>';
+          }).join('') +
+        '</div>' +
       '</div>' +
-    '</div>';
+      '<div class="grid stats" style="margin:12px 0">' +
+        '<div class="card"><div class="muted">Bài đã vững</div><div class="stat-val">' + completed + ' / ' + D.length + '</div></div>' +
+        '<div class="card"><div class="muted">Điểm TB bài học</div><div class="stat-val">' + avgScore + '</div></div>' +
+        '<div class="card"><div class="muted">Đề KT đã làm</div><div class="stat-val">' + doneExamIds.length + ' / ' + EXAMS.length + '</div></div>' +
+        '<div class="card"><div class="muted">Câu cần ôn lại</div><div class="stat-val">' + mistakeCount + '</div></div>' +
+      '</div>' +
+      '<div id="prog-gb-slot"></div>' +
+      '<section class="card" style="margin:12px 0">' +
+        '<h2 style="margin-top:0">Tiến độ hoàn thành Mục lục theo Lớp</h2>' +
+        [6,7,8,9].map(function(gr){
+          var l = getSortedGradeLessons(gr);
+          var p = pct(l);
+          return (
+            '<div style="margin:9px 0">' +
+              '<div class="row between"><a href="#/lop/' + gr + '" style="text-decoration:none"><b>KHTN Lớp ' + gr + '</b></a><span class="muted">' + l.filter(function(t){ return isMastered(t.id); }).length + '/' + l.length + ' mục (' + p + '%)</span></div>' +
+              '<div class="bar"><i style="width:' + p + '%"></i></div>' +
+            '</div>'
+          );
+        }).join('') +
+      '</section>' +
+      '<div class="card soft">' +
+        '<div class="row between">' +
+          '<span class="muted" style="font-size:.86rem">Điểm tự lưu trên thiết bị này. Có thể sao lưu ra tệp hoặc xóa làm mới:</span>' +
+          '<div class="row">' +
+            '<button type="button" class="btn sm alt" id="btn-export">Lưu sổ điểm</button>' +
+            '<button type="button" class="btn sm subtle" id="btn-import">Mở tệp điểm</button>' +
+            '<input type="file" id="file-import" accept="application/json,.json" hidden>' +
+            '<button type="button" class="btn sm danger" id="rs">Xóa làm lại</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
 
-  app.innerHTML = h;
-  mountGradebookWidget(document.getElementById('prog-gb-7'), 7);
-  mountGradebookWidget(document.getElementById('prog-gb-8'), 8);
+    app.innerHTML = h;
+    mountGradebookWidget(document.getElementById('prog-gb-slot'), selectedGbGrade);
 
-  document.getElementById('btn-export').onclick = function(){
-    var payload = {
-      version: 6,
-      exportedAt: new Date().toISOString(),
-      progress: loadProg(),
-      exams: loadExams(),
-      mistakes: loadMistakes(),
-      meta: loadMeta()
+    app.querySelectorAll('#prog-g-tabs button').forEach(function(b){
+      b.onclick = function(){
+        selectedGbGrade = Number(b.dataset.pg);
+        setPrefGrade(selectedGbGrade);
+        render();
+      };
+    });
+
+    document.getElementById('btn-export').onclick = function(){
+      var payload = {
+        version: 7,
+        exportedAt: new Date().toISOString(),
+        progress: loadProg(),
+        exams: loadExams(),
+        mistakes: loadMistakes(),
+        meta: loadMeta()
+      };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'so-diem-khtn-' + new Date().toISOString().slice(0,10) + '.json';
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      showToast('✓ Đã tải tệp sổ điểm về máy.');
     };
-    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'so-diem-khtn-' + new Date().toISOString().slice(0,10) + '.json';
-    a.click();
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-    showToast('Đã lưu tệp sổ điểm về máy.');
-  };
 
-  var fileInput = document.getElementById('file-import');
-  document.getElementById('btn-import').onclick = function(){ fileInput.click(); };
-  fileInput.onchange = function(){
-    var f = fileInput.files && fileInput.files[0];
-    if (!f) return;
-    var reader = new FileReader();
-    reader.onload = function(){
-      try {
-        var data = JSON.parse(reader.result);
-        if (data.progress) saveProg(data.progress);
-        if (data.exams) saveExams(data.exams);
-        if (data.mistakes) saveMistakes(data.mistakes);
-        if (data.meta) saveMeta(data.meta);
-        syncGradeNavLinks();
-        showToast('✓ Đã khôi phục sổ điểm thành công!');
-        progress();
-      } catch (e) {
-        alert('Tệp không đúng định dạng sổ điểm đã lưu.');
+    var fileInput = document.getElementById('file-import');
+    document.getElementById('btn-import').onclick = function(){ fileInput.click(); };
+    fileInput.onchange = function(){
+      var f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function(){
+        try {
+          var data = JSON.parse(reader.result);
+          if (data.progress) saveProg(data.progress);
+          if (data.exams) saveExams(data.exams);
+          if (data.mistakes) saveMistakes(data.mistakes);
+          if (data.meta) saveMeta(data.meta);
+          syncGradeNavLinks();
+          showToast('✓ Đã khôi phục sổ điểm!');
+          render();
+        } catch (e) {
+          alert('Tệp không đúng định dạng sổ điểm.');
+        }
+      };
+      reader.readAsText(f);
+    };
+
+    document.getElementById('rs').onclick = function(){
+      if (confirm('Xóa toàn bộ điểm số và lịch sử làm bài trên máy này để bắt đầu lại từ đầu?')) {
+        saveProg({});
+        saveExams({});
+        saveMistakes({});
+        saveMeta({});
+        try { localStorage.removeItem('khtn-drafts-v1'); localStorage.removeItem('khtn-snapshots-v1'); } catch (e) {}
+        showToast('✓ Đã làm mới dữ liệu.');
+        render();
       }
     };
-    reader.readAsText(f);
-  };
+  }
 
-  document.getElementById('rs').onclick = function(){
-    if (confirm('Bạn có chắc muốn xóa toàn bộ điểm số và lịch sử làm bài trên máy này để bắt đầu lại từ đầu không?')) {
-      saveProg({});
-      saveExams({});
-      saveDrafts({});
-      saveMistakes({});
-      saveMeta({});
-      try { localStorage.removeItem('khtn-snapshots-v1'); } catch (e) {}
-      showToast('Đã xóa dữ liệu, sẵn sàng học lại từ đầu!');
-      progress();
-    }
-  };
+  render();
 }
 
 // --- Router ---
@@ -3153,7 +2622,7 @@ function route(){
     currentCleanup = null;
   }
   var m = location.hash.replace(/^#\/?/, '').split('/');
-  if (m[0] === 'lop') grade(parseInt(m[1], 10), m[2]);
+  if (m[0] === 'lop') bookToc(parseInt(m[1], 10), m[2]);
   else if (m[0] === 'bai') lesson(m[1]);
   else if (m[0] === 'de-kiem-tra' || m[0] === 'in-nhanh') examCatalog(parseInt(m[1], 10), m[2]);
   else if (m[0] === 'lam-de') examRunner(m[1]);
@@ -3161,7 +2630,7 @@ function route(){
   else if (m[0] === 'kiem-tra') placement(parseInt(m[1], 10));
   else if (m[0] === 'so-tay') notebook(m[1]);
   else if (m[0] === 'tien-do') progress();
-  else home();
+  else bookToc(getPrefGrade(), 'toc');
   window.scrollTo(0, 0);
 }
 

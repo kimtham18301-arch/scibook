@@ -574,11 +574,20 @@ window.KHTN_TYPES = {
   'l6-oxy-kk': [
     { name:'Dạng 1: Thành phần không khí và nhận biết khí Oxygen', method:'Không khí gồm ~78% N₂, 21% O₂, 1% khí khác. Nhận biết O₂ bằng que đóm còn tàn đỏ (bùng cháy).', ex:'Úp cốc thủy tinh kín lên ngọn nến đang cháy, vì sao một lát sau nến tắt?', sol:'Khi lượng O₂ trong cốc bị đốt cạn hết thì sự cháy không duy trì được nữa.' }
   ],
+  'l6-vat-lieu': [
+    { name:'Dạng 1: Phân biệt Vật liệu – Nguyên liệu – Nhiên liệu – Lương thực, thực phẩm & sử dụng an toàn', method:'Kim loại dẫn điện/nhiệt; nhựa, cao su cách điện; đá vôi, quặng là nguyên liệu; than, xăng, gas là nhiên liệu. Cung cấp đủ O₂ để nhiên liệu cháy hoàn toàn.', ex:'Vì sao không được đốt than tổ ong trong phòng kín?', sol:'Cháy thiếu O₂ sinh ra khí độc CO không màu, không mùi gây ngạt nguy hiểm.' }
+  ],
   'l6-hon-hop': [
     { name:'Dạng 1: Lựa chọn phương pháp tách chất ra khỏi hỗn hợp', method:'Không tan trong lỏng → Lọc; Tan không bay hơi (muối) → Cô cạn; Hai chất lỏng không tan vào nhau (dầu + nước) → Chiết bằng phễu chiết.', ex:'Làm thế nào tách riêng dầu ăn ra khỏi hỗn hợp dầu ăn lẫn nước?', sol:'Dùng phễu chiết (dầu ăn nhẹ hơn nổi lên lớp trên, xả lớp nước ở dưới ra trước).' }
   ],
   'l6-te-bao': [
     { name:'Dạng 1: Tính số tế bào con tạo thành sau k lần phân chia', method:'Từ a tế bào ban đầu sau k lần phân chia liên tiếp tạo ra: N = a · 2ᵏ tế bào.', ex:'Từ 1 tế bào sau 4 lần phân chia liên tiếp tạo ra bao nhiêu tế bào con?', sol:'N = 2⁴ = 16 tế bào.' }
+  ],
+  'l6-co-the': [
+    { name:'Dạng 1: Phân biệt cơ thể đơn bào – đa bào và 5 cấp độ tổ chức cơ thể đa bào', method:'Đơn bào gồm 1 tế bào (vi khuẩn, trùng roi). Đa bào sắp xếp từ nhỏ đến lớn: Tế bào → Mô → Cơ quan → Hệ cơ quan → Cơ thể.', ex:'Lá cây, dạ dày, quả tim thuộc cấp độ tổ chức nào của cơ thể đa bào?', sol:'Thuộc cấp độ Cơ quan (cấu tạo từ nhiều mô cùng thực hiện chức năng).' }
+  ],
+  'l7-sinh-truong': [
+    { name:'Dạng 1: Phân biệt mô phân sinh đỉnh – mô phân sinh bên và vòng đời biến thái', method:'Mô phân sinh đỉnh làm cây dài ra; mô phân sinh bên làm thân cây gỗ to ngang. Ếch, bướm, muỗi phát triển qua biến thái hoàn toàn.', ex:'Vì sao nông dân bấm ngọn cây bầu, bí khi cây đã leo giàn?', sol:'Loại bỏ ưu thế đỉnh để chồi nách mọc nhiều nhánh bên ra nhiều hoa, quả.' }
   ],
   'l6-phan-loai': [
     { name:'Dạng 1: Sắp xếp 7 bậc phân loại sinh vật và nhận diện 5 giới sinh vật', method:'Từ lớn đến nhỏ: Giới → Ngành → Lớp → Bộ → Họ → Chi → Loài. Virus chưa có cấu tạo tế bào.', ex:'Nấm men, nấm rơm thuộc giới sinh vật nào?', sol:'Giới Nấm (không có lục lạp, sống dị dưỡng hoại sinh).' }
@@ -624,6 +633,18 @@ window.KHTN_TYPES = {
   ],
   'l9-tien-hoa': [
     { name:'Dạng 1: Cơ chế chọn lọc tự nhiên và các bằng chứng tiến hóa', method:'Biến dị cá thể xuất hiện ngẫu nhiên → Chọn lọc tự nhiên giữ lại kiểu hình thích nghi, đào thải kém thích nghi.', ex:'Vì sao lạm dụng thuốc kháng sinh làm vi khuẩn kháng thuốc ngày càng phổ biến?', sol:'Thuốc kháng sinh là nhân tố chọn lọc giữ lại các vi khuẩn sẵn mang đột biến kháng thuốc tiếp tục sinh sản nhân nhanh.' }
+  ],
+  'l9-mo-dau': [
+    { name:'Dạng 1: Quy tắc an toàn hóa chất hữu cơ dễ cháy & cấu trúc bài thuyết trình khoa học', method:'Na bảo quản trong dầu hỏa; cồn C₂H₅OH dễ bay hơi bắt lửa nên để xa nguồn nhiệt. Báo cáo khoa học gồm: Mở đầu → Phương pháp → Kết quả & thảo luận → Kết luận.', ex:'Vì sao kim loại Sodium (Na) phải ngâm chìm trong dầu hỏa khan?', sol:'Ngăn Na tiếp xúc và phản ứng mãnh liệt với oxygen và hơi nước trong không khí.' }
+  ],
+  'l9-nang-luong-song': [
+    { name:'Dạng 1: So sánh năng lượng hóa thạch và các nguồn năng lượng tái tạo sạch', method:'Hóa thạch (than, dầu, khí) hữu hạn và phát thải CO₂ gây hiệu ứng nhà kính; Năng lượng tái tạo (Mặt Trời, gió, nước, sinh khối) bền vững, ít ô nhiễm.', ex:'Pin mặt trời chuyển hóa trực tiếp dạng năng lượng nào thành điện năng?', sol:'Chuyển hóa trực tiếp quang năng (ánh sáng Mặt Trời) thành điện năng.' }
+  ],
+  'l9-ancol-axit': [
+    { name:'Dạng 1: Tính độ cồn, nhận biết C₂H₅OH – CH₃COOH và phản ứng ester hóa', method:'Độ cồn = (V_rượu / V_dd) × 100°. CH₃COOH làm quỳ tím hóa đỏ và sủi bọt CO₂ với CaCO₃/NaHCO₃; đun với C₂H₅OH (xt H₂SO₄ đặc) tạo ester mùi thơm CH₃COOC₂H₅.', ex:'Tính thể tích C₂H₅OH nguyên chất có trong 250 mL cồn 70°.', sol:'V = 250 × 70 / 100 = 175 mL.' }
+  ],
+  'l9-nhiem-sac-the': [
+    { name:'Dạng 1: So sánh Nguyên phân – Giảm phân, cơ chế xác định giới tính XX/XY và bệnh di truyền người', method:'Ở người 2n = 46, giao tử n = 23. Nguyên phân giữ nguyên 2n (k lần tạo 2ᵏ tế bào); Giảm phân tạo 4 tế bào đơn bội n. Hội chứng Down có 3 NST số 21 (47 NST).', ex:'Từ 1 tế bào sinh dưỡng người (2n = 46) nguyên phân 3 lần tạo bao nhiêu tế bào con?', sol:'N = 2³ = 8 tế bào con (mỗi tế bào vẫn mang 2n = 46 NST).' }
   ],
   'l9-tai-nguyen': [
     { name:'Dạng 1: Khai thác bền vững tài nguyên, chu trình Carbon và giảm phát thải khí nhà kính', method:'Giảm đốt nhiên liệu hóa thạch (than, dầu, khí), chuyển sang năng lượng tái tạo và trồng rừng hấp thụ CO₂.', ex:'Giải thích mối liên hệ giữa chặt phá rừng và hiện tượng nóng lên toàn cầu.', sol:'Mất rừng làm giảm lượng CO₂ được quang hợp hấp thụ, khiến nồng độ CO₂ khí quyển tăng gây hiệu ứng nhà kính mạnh hơn.' }

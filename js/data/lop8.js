@@ -1,9 +1,9 @@
 window.KHTN = window.KHTN || [];
-// LỚP 8 – Đầy đủ Chương trình GDPT 2018 của Bộ GD&ĐT (Thông tư 32/2018/TT-BGDĐT).
+// LỚP 8 – Theo đúng Mục lục SGK Khoa học tự nhiên 8 (Bộ Kết nối tri thức với cuộc sống – Bộ SGK thống nhất toàn quốc theo QĐ 3588/QĐ-BGDĐT).
 // Điều kiện chuẩn chất khí: 25 °C, 1 bar ⇒ 1 mol khí chiếm 24,79 L.
 // Cấu trúc củng cố từ Dễ đến Khó: d=1 Nhận biết (Dễ), d=2 Thông hiểu (TB), d=3 Vận dụng (Khá), d=4 Vận dụng cao (Khó).
 KHTN.push(
-{ id:'l8-thi-nghiem', grade:8, term:'HK1', stage:1, weeks:'Tuần 1', periods:4, order:1, subj:'hoa', title:'Bài 1: Dụng cụ, hóa chất & an toàn thí nghiệm KHTN 8', prereq:['l6-mo-dau'],
+{ id:'l8-thi-nghiem', grade:8, term:'HK1', stage:1, weeks:'Tuần 1', periods:4, order:1, chapCode:'Mở đầu', chapTitle:'Mở đầu môn Khoa học tự nhiên 8', sgk:'Bài 1', subj:'td', title:'Sử dụng hóa chất, thiết bị cơ bản & an toàn phòng thí nghiệm', prereq:['l6-mo-dau'],
   theory:[
     'Dụng cụ thí nghiệm hóa – sinh phổ biến ở lớp 8: ống nghiệm (làm phản ứng lượng nhỏ), bình tam giác (chuẩn độ, lắc dung dịch không sánh), cốc thủy tinh, ống đong (đo thể tích), phễu lọc, ống hút nhỏ giọt (lấy lượng nhỏ chất lỏng), kẹp gỗ (kẹp ở vị trí 1/3 ống nghiệm tính từ miệng xuống).',
     'Thiết bị điện và nhiệt ở lớp 8: biến áp nguồn (cung cấp điện áp một chiều DC và xoay chiều AC an toàn 3 V – 12 V), ampe kế, vôn kế, công tắc, biến trở, đèn LED (chỉ cho dòng điện đi theo 1 chiều vào cực dương dài hơn), joulemeter (đo năng lượng điện/nhiệt).',
@@ -47,7 +47,7 @@ KHTN.push(
     {d:4,q:'Trong thí nghiệm đo năng lượng nhiệt cung cấp cho nước bằng dây điện trở nhúng trong bình nhiệt lượng kế, thiết bị hiện số mắc giữa nguồn điện và dây điện trở để đo trực tiếp năng lượng điện (theo đơn vị J) là gì?',o:['Joulemeter (oat-giây kế / jun kế)','Ống đong chia độ','Lực kế lò xo','Tốc kế'],w:'Joulemeter hiển thị trực tiếp năng lượng điện đã truyền (J).'}
   ]},
 
-{ id:'l8-phan-ung', grade:8, term:'HK1', stage:1, weeks:'Tuần 2–4', periods:10, order:2, subj:'hoa', title:'Bài 2: Phản ứng hóa học, năng lượng & bảo toàn khối lượng', prereq:['l7-hoa-tri'],
+{ id:'l8-phan-ung', grade:8, term:'HK1', stage:1, weeks:'Tuần 2–3', periods:8, order:2, chapCode:'Chương I', chapTitle:'Phản ứng hóa học', sgk:'Bài 2 & 5', subj:'hoa', title:'Phản ứng hóa học, Định luật bảo toàn khối lượng & PTHH', prereq:['l7-hoa-tri'],
   theory:[
     'Biến đổi vật lí là hiện tượng chất biến đổi về trạng thái, hình dạng, kích thước… nhưng KHÔNG tạo ra chất mới (nước đá tan, hòa tan muối, uốn dây sắt). Biến đổi hóa học (phản ứng hóa học) là quá trình biến đổi từ chất này thành chất mới khác.',
     'Trong phản ứng hóa học: liên kết giữa các nguyên tử thay đổi làm phân tử này biến đổi thành phân tử khác, còn SỐ NGUYÊN TỬ của mỗi nguyên tố trước và sau phản ứng luôn giữ nguyên. Dấu hiệu nhận biết: đổi màu, sủi bọt khí, xuất hiện kết tủa, tỏa nhiệt hoặc phát sáng.',
@@ -93,7 +93,7 @@ KHTN.push(
     {d:4,q:'Cân bằng phương trình đốt cháy C₂H₆O + O₂ —(t°)→ CO₂ + H₂O với hệ số nguyên tối giản. Hệ số của O₂ là bao nhiêu?',n:3,t:0,u:'',w:'1C₂H₆O + 3O₂ → 2CO₂ + 3H₂O (vế phải có 2×2 + 3×1 = 7 nguyên tử O; C₂H₆O đã có 1 O nên cần 6 O = 3O₂).'}
   ]},
 
-{ id:'l8-mol', grade:8, term:'HK1', stage:1, weeks:'Tuần 5–6', periods:8, order:3, subj:'hoa', title:'Bài 3: Mol, thể tích mol chất khí & tỉ khối', prereq:['l8-phan-ung'],
+{ id:'l8-mol', grade:8, term:'HK1', stage:1, weeks:'Tuần 4–5', periods:6, order:3, chapCode:'Chương I', chapTitle:'Phản ứng hóa học', sgk:'Bài 3', subj:'hoa', title:'Mol, thể tích mol chất khí & tỉ khối chất khí', prereq:['l8-phan-ung'],
   theory:[
     'Mol là lượng chất có chứa N_A = 6,022 × 10²³ hạt vi mô (nguyên tử, phân tử, ion) của chất đó. Hằng số Avogadro N_A = 6,022 × 10²³ mol⁻¹.',
     'Khối lượng mol (kí hiệu M, đơn vị g/mol) của một chất là khối lượng tính bằng gam của N_A nguyên tử hoặc phân tử chất đó; có trị số bằng khối lượng nguyên tử hoặc khối lượng phân tử tính theo amu.',
@@ -140,7 +140,7 @@ KHTN.push(
     {d:4,q:'Hỗn hợp khí gồm 0,2 mol O₂ (M = 32) và 0,3 mol CO₂ (M = 44) có tỉ khối so với khí H₂ (M = 2) bằng bao nhiêu?',n:19.6,t:0.05,u:'',w:'m_hh = 0,2×32 + 0,3×44 = 19,6 g; n_hh = 0,5 mol ⇒ M_tb = 39,2 ⇒ d/H₂ = 39,2 / 2 = 19,6.'}
   ]},
 
-{ id:'l8-dung-dich', grade:8, term:'HK1', stage:2, weeks:'Tuần 10–11', periods:8, order:5, subj:'hoa', title:'Bài 5: Độ tan, dung dịch & nồng độ dung dịch (C%, CM)', prereq:['l8-mol'],
+{ id:'l8-dung-dich', grade:8, term:'HK1', stage:1, weeks:'Tuần 6–7', periods:6, order:4, chapCode:'Chương I', chapTitle:'Phản ứng hóa học', sgk:'Bài 4', subj:'hoa', title:'Dung dịch, độ tan & nồng độ dung dịch (C%, CM)', prereq:['l8-mol'],
   theory:[
     'Dung dịch là hỗn hợp đồng nhất của dung môi và chất tan. Ở một nhiệt độ xác định: dung dịch chưa bão hòa còn có thể hòa tan thêm chất tan; dung dịch bão hòa không thể hòa tan thêm chất tan.',
     'Độ tan (S) của một chất trong nước ở nhiệt độ xác định là số gam chất đó hòa tan tối đa trong 100 gam nước để tạo thành dung dịch bão hòa. Hầu hết chất rắn tăng độ tan khi tăng nhiệt độ; chất khí tăng độ tan khi giảm nhiệt độ và tăng áp suất.',
@@ -187,7 +187,7 @@ KHTN.push(
     {d:4,q:'Trộn 200 mL dung dịch HCl 1 M với 300 mL dung dịch HCl 2 M (coi thể tích không đổi). Nồng độ mol của dung dịch sau khi trộn là bao nhiêu M?',n:1.6,t:0.01,u:'M',w:'Tổng n = 0,2×1 + 0,3×2 = 0,8 mol; Tổng V = 0,5 L ⇒ C_M = 0,8 / 0,5 = 1,6 M.'}
   ]},
 
-{ id:'l8-tinh-pthh', grade:8, term:'HK1', stage:2, weeks:'Tuần 12–13', periods:9, order:6, subj:'hoa', title:'Bài 6: Tính theo PTHH, hiệu suất & tốc độ phản ứng', prereq:['l8-dung-dich'],
+{ id:'l8-tinh-pthh', grade:8, term:'HK1', stage:1, weeks:'Tuần 8–9', periods:8, order:5, chapCode:'Chương I', chapTitle:'Phản ứng hóa học', sgk:'Bài 6–7', subj:'hoa', title:'Tính theo phương trình hóa học, tốc độ phản ứng & chất xúc tác', prereq:['l8-dung-dich'],
   theory:[
     'Các bước tính theo PTHH: (1) Đổi dữ kiện đề bài ra số mol → (2) Viết và cân bằng PTHH → (3) Dựa vào tỉ lệ hệ số PTHH để tìm số mol chất cần tính → (4) Chuyển số mol sang khối lượng, thể tích hoặc nồng độ.',
     'Bài toán chất dư – chất hết (cho biết số mol của cả 2 chất tham gia aA + bB → sản phẩm): lập tỉ số n_A / a và n_B / b. Tỉ số nào NHỎ HƠN thì chất đó phản ứng HẾT, và MỌI tính toán sản phẩm phải tính theo chất phản ứng hết!',
@@ -233,7 +233,7 @@ KHTN.push(
     {d:4,q:'Tổng hợp NH₃ theo phản ứng N₂ + 3H₂ ⇄ 2NH₃. Từ 1 mol N₂ và lượng dư H₂, hiệu suất đạt 25% thì thu được bao nhiêu mol NH₃?',n:0.5,t:0.01,u:'mol',w:'n(NH₃ lí thuyết) = 2 mol ⇒ n(NH₃ thực tế) = 2 × 25% = 0,5 mol.'}
   ]},
 
-{ id:'l8-acid-base', grade:8, term:'HK2', stage:3, weeks:'Tuần 19–20', periods:9, order:10, subj:'hoa', title:'Bài 10: Acid, Base & Thang pH', prereq:['l8-tinh-pthh'],
+{ id:'l8-acid-base', grade:8, term:'HK1', stage:2, weeks:'Tuần 10–11', periods:8, order:6, chapCode:'Chương II', chapTitle:'Một số hợp chất thông dụng', sgk:'Bài 8–9', subj:'hoa', title:'Acid, Base & Thang pH', prereq:['l8-tinh-pthh'],
   theory:[
     'Acid là những hợp chất trong phân tử có nguyên tử H liên kết với gốc acid; khi tan trong nước phân li tạo ra ion H⁺ (VD: HCl, H₂SO₄, HNO₃, CH₃COOH). Tính chất chung của dung dịch acid: làm quỳ tím hóa ĐỎ, không làm đổi màu phenolphthalein; tác dụng với kim loại hoạt động đứng trước H (Mg, Al, Zn, Fe — trừ Cu, Ag, Au) giải phóng H₂; tác dụng với base và oxide base tạo muối + nước.',
     'Base là hợp chất trong phân tử có nguyên tử kim loại liên kết với một hay nhiều nhóm hydroxide (–OH); khi tan trong nước tạo ra ion OH⁻. Base chia 2 loại: Base tan trong nước gọi là KIỀM (NaOH, KOH, Ca(OH)₂, Ba(OH)₂) và Base không tan (Cu(OH)₂ xanh lam, Fe(OH)₃ nâu đỏ, Mg(OH)₂ trắng).',
@@ -278,7 +278,7 @@ KHTN.push(
     {d:4,q:'Hòa tan hoàn toàn 11,2 g Fe (M = 56) và 6,4 g Cu (M = 64) vào dung dịch HCl dư. Sau phản ứng thu được bao nhiêu lít khí H₂ ở 25 °C, 1 bar? (làm tròn 2 chữ số thập phân)',n:4.96,t:0.03,u:'L',w:'Cu không tác dụng với HCl! Chỉ có Fe phản ứng: n(Fe) = 11,2/56 = 0,2 mol ⇒ n(H₂) = 0,2 mol ⇒ V = 0,2 × 24,79 = 4,958 L ≈ 4,96 L.'}
   ]},
 
-{ id:'l8-oxide-muoi', grade:8, term:'HK2', stage:3, weeks:'Tuần 21–22', periods:10, order:11, subj:'hoa', title:'Bài 11: Oxide, Muối & Phân bón hóa học', prereq:['l8-acid-base'],
+{ id:'l8-oxide-muoi', grade:8, term:'HK1', stage:2, weeks:'Tuần 12–13', periods:9, order:7, chapCode:'Chương II', chapTitle:'Một số hợp chất thông dụng', sgk:'Bài 10–12', subj:'hoa', title:'Oxide, Muối & Phân bón hóa học', prereq:['l8-acid-base'],
   theory:[
     'Oxide là hợp chất của hai nguyên tố, trong đó có một nguyên tố là oxygen. Chia làm 4 loại: (1) Oxide base (Na₂O, CaO, CuO, Fe₂O₃) tác dụng với acid tạo muối + nước; (2) Oxide acid (CO₂, SO₂, SO₃, P₂O₅) tác dụng với dung dịch kiềm tạo muối + nước; (3) Oxide lưỡng tính (Al₂O₃, ZnO) tác dụng được với cả acid lẫn kiềm; (4) Oxide trung tính (CO, NO) không tạo muối.',
     'Muối là hợp chất gồm ion kim loại (hoặc ion ammonium NH₄⁺) liên kết với gốc acid (VD: NaCl, CaCO₃, CuSO₄, NaHCO₃, NH₄NO₃). Cách gọi tên muối: Tên kim loại (kèm hóa trị La Mã nếu đa hóa trị) + tên gốc acid (-Cl: chloride, =SO₄: sulfate, -NO₃: nitrate, =CO₃: carbonate, ≡PO₄: phosphate).',
@@ -325,7 +325,7 @@ KHTN.push(
     {d:4,q:'Trên bao bì một loại phân bón NPK ghi kí hiệu "NPK 20-20-15". Trong 50 kg phân bón này có chứa bao nhiêu kg dinh dưỡng N nguyên chất?',n:10,t:0.1,u:'kg',w:'Chỉ số đầu tiên 20 nghĩa là chứa 20% khối lượng N ⇒ m(N) = 50 × 20% = 10 kg.'}
   ]},
 
-{ id:'l8-khoi-luong-rieng', grade:8, term:'HK1', stage:1, weeks:'Tuần 7–8', periods:10, order:4, subj:'ly', title:'Bài 4: Khối lượng riêng & Áp suất (rắn, lỏng, khí quyển)', prereq:['l6-luc'],
+{ id:'l8-khoi-luong-rieng', grade:8, term:'HK1', stage:2, weeks:'Tuần 14–15', periods:10, order:8, chapCode:'Chương III', chapTitle:'Khối lượng riêng và áp suất', sgk:'Bài 13–16', subj:'ly', title:'Khối lượng riêng & Áp suất (rắn, lỏng, khí quyển)', prereq:['l6-luc'],
   theory:[
     'Khối lượng riêng của một chất là khối lượng của một đơn vị thể tích chất đó: D = m / V. Đơn vị chuẩn SI: kg/m³; đơn vị thường dùng: g/cm³ (hoặc g/mL). Quy đổi quan trọng: 1 g/cm³ = 1000 kg/m³ (nước nguyên chất có D ≈ 1 g/cm³ = 1000 kg/m³).',
     'Trọng lượng riêng (d, đơn vị N/m³) là trọng lượng của một mét khối chất đó: d = P / V = 10 · D (với nước d ≈ 10 000 N/m³).',
@@ -370,7 +370,7 @@ KHTN.push(
     {d:4,q:'Đổ vào bình trụ một lớp nước cao 20 cm (d₁ = 10 000 N/m³) và phía trên là một lớp dầu không tan cao 15 cm (d₂ = 8000 N/m³). Áp suất tổng cộng do hai chất lỏng gây ra tại đáy bình là bao nhiêu Pa?',n:3200,t:1,u:'Pa',w:'p = d₁·h₁ + d₂·h₂ = 10 000×0,20 + 8000×0,15 = 2000 + 1200 = 3200 Pa.'}
   ]},
 
-{ id:'l8-archimedes', grade:8, term:'HK1', stage:2, weeks:'Tuần 14', periods:6, order:7, subj:'ly', title:'Bài 7: Lực đẩy Archimedes & sự nổi của vật', prereq:['l8-khoi-luong-rieng'],
+{ id:'l8-archimedes', grade:8, term:'HK1', stage:2, weeks:'Tuần 16', periods:5, order:9, chapCode:'Chương III', chapTitle:'Khối lượng riêng và áp suất', sgk:'Bài 17', subj:'ly', title:'Lực đẩy Archimedes & điều kiện vật nổi', prereq:['l8-khoi-luong-rieng'],
   theory:[
     'Mọi vật nhúng vào chất lỏng (hoặc chất khí) đều chịu một lực đẩy tác dụng từ dưới lên theo phương thẳng đứng gọi là lực đẩy Archimedes (F_A).',
     'Độ lớn lực đẩy Archimedes bằng trọng lượng của phần chất lỏng bị vật chiếm chỗ: F_A = d_lỏng · V_chìm = 10 · D_lỏng · V_chìm (lưu ý: V_chìm là thể tích PHẦN VẬT CHÌM trong chất lỏng tính bằng m³, d_lỏng là trọng lượng riêng của CHẤT LỎNG chứ không phải của vật!).',
@@ -415,7 +415,7 @@ KHTN.push(
     {d:4,q:'Một tàu thủy đi từ sông (nước ngọt D = 1000 kg/m³) ra biển (nước mặn D = 1030 kg/m³), giả sử khối lượng tàu không đổi. Độ chìm của thân tàu thay đổi thế nào?',o:['Thân tàu nhô cao lên (thể tích phần chìm giảm đi)','Thân tàu chìm sâu thêm xuống nước','Mức mớn nước hoàn toàn không đổi','Lực đẩy Archimedes tăng vọt lớn hơn trọng lượng tàu'],w:'Cả ở sông và biển F_A đều bằng P_tàu (không đổi); ra biển d_nước tăng nên V_chìm = P / d_nước giảm → tàu nhô cao hơn.'}
   ]},
 
-{ id:'l8-don-bay', grade:8, term:'HK1', stage:2, weeks:'Tuần 15', periods:6, order:8, subj:'ly', title:'Bài 8: Tác dụng làm quay của lực, Moment lực & Đòn bẩy', prereq:['l6-luc'],
+{ id:'l8-don-bay', grade:8, term:'HK1', stage:2, weeks:'Tuần 17', periods:6, order:10, chapCode:'Chương IV', chapTitle:'Tác dụng làm quay của lực', sgk:'Bài 18–19', subj:'ly', title:'Tác dụng làm quay của lực, Moment lực & Đòn bẩy', prereq:['l6-luc'],
   theory:[
     'Lực có thể làm quay vật quanh một trục cố định khi giá của lực KHÔNG cắt và KHÔNG song song với trục quay. Tác dụng làm quay của lực được đặc trưng bởi đại lượng Moment lực (M).',
     'Moment lực đối với một trục quay bằng tích độ lớn của lực F với cánh tay đòn d: M = F · d (đơn vị: N·m). Cánh tay đòn d là khoảng cách vuông góc từ trục quay đến GIÁ của lực (nếu giá của lực đi qua trục quay thì d = 0 ⇒ M = 0, lực không gây tác dụng làm quay).',
@@ -460,7 +460,7 @@ KHTN.push(
     {d:4,q:'Khi gập cẳng tay nâng quả tạ trong lòng bàn tay: khớp khuỷu tay là điểm tựa, cơ nhị đầu bám sát khuỷu tay kéo lên, còn quả tạ ở xa tại bàn tay. Đòn bẩy cẳng tay này có đặc điểm gì?',o:['Không lợi về lực (lực cơ lớn hơn trọng lượng tạ) nhưng lợi về quãng đường và tốc độ chuyển động của bàn tay','Cho lợi về lực gấp 10 lần','Điểm tựa nằm ở giữa cơ và tạ','Cánh tay đòn của cơ dài hơn cánh tay đòn của tạ'],w:'Đây là đòn bẩy loại 3: d_cơ < d_tạ nên thiệt lực nhưng giúp bàn tay di chuyển nhanh và linh hoạt.'}
   ]},
 
-{ id:'l8-dien', grade:8, term:'HK2', stage:3, weeks:'Tuần 23–24', periods:10, order:12, subj:'ly', title:'Bài 12: Nhiễm điện, Dòng điện, Cường độ & Hiệu điện thế', prereq:['l7-tu'],
+{ id:'l8-dien', grade:8, term:'HK2', stage:3, weeks:'Tuần 19–21', periods:12, order:11, chapCode:'Chương V', chapTitle:'Điện', sgk:'Bài 20–25', subj:'ly', title:'Nhiễm điện, Dòng điện, Mạch điện, Cường độ & Hiệu điện thế', prereq:['l7-tu'],
   theory:[
     'Nhiều vật sau khi bị cọ xát có khả năng hút các vật nhẹ (vụn giấy) hoặc phóng tia lửa điện, gọi là vật nhiễm điện (mang điện tích). Có 2 loại điện tích: dương (+) và âm (−). Vật nhận thêm electron nhiễm điện âm; vật mất bớt electron nhiễm điện dương. Hai điện tích cùng loại đẩy nhau, khác loại hút nhau.',
     'Dòng điện là dòng chuyển dời có hướng của các hạt mang điện (trong kim loại là dòng các electron tự do). Nguồn điện (pin, ắc quy) tạo ra và duy trì dòng điện lâu dài. Chiều dòng điện quy ước: đi từ cực DƯƠNG (+) qua dây dẫn và thiết bị tiêu thụ tới cực ÂM (−) của nguồn điện (ngược chiều dịch chuyển của electron!).',
@@ -506,7 +506,7 @@ KHTN.push(
     {d:4,q:'Có 3 quả cầu nhẹ nhiễm điện A, B, C treo bằng sợi chỉ tơ mảnh. Biết A đẩy B, còn B hút C (C đã mang điện tích, không trung hòa). Nếu A nhiễm điện dương (+) thì C mang điện tích gì?',o:['C mang điện tích âm (−)','C mang điện tích dương (+)','C không mang điện','Không thể xác định được dấu của C'],w:'A (+) đẩy B ⇒ B cùng dấu A nên B (+); B (+) hút C (đã nhiễm điện) ⇒ C trái dấu B nên C (−).'}
   ]},
 
-{ id:'l8-nhiet', grade:8, term:'HK2', stage:4, weeks:'Tuần 27–29', periods:10, order:14, subj:'ly', title:'Bài 14: Năng lượng nhiệt (Nội năng), Truyền nhiệt & Sự nở vì nhiệt', prereq:['l6-nang-luong'],
+{ id:'l8-nhiet', grade:8, term:'HK2', stage:3, weeks:'Tuần 22–24', periods:10, order:12, chapCode:'Chương VI', chapTitle:'Nhiệt', sgk:'Bài 26–29', subj:'ly', title:'Năng lượng nhiệt (Nội năng), Truyền nhiệt & Sự nở vì nhiệt', prereq:['l6-nang-luong'],
   theory:[
     'Các phân tử cấu tạo nên vật chuyển động hỗn độn không ngừng: nhiệt độ của vật càng cao thì các phân tử chuyển động càng nhanh. Tổng động năng và thế năng của các phân tử cấu tạo nên vật gọi là NỘI NĂNG của vật. Phần năng lượng nhiệt vật nhận thêm hay mất bớt trong quá trình truyền nhiệt gọi là nhiệt lượng (Q, đơn vị Jun – J).',
     'Ba hình thức truyền nhiệt: (1) Dẫn nhiệt là truyền nhiệt năng trực tiếp từ phần này sang phần khác của vật (chủ yếu ở CHẤT RẮN: kim loại dẫn nhiệt rất tốt; gỗ, nhựa, len, không khí dẫn nhiệt kém nên dùng cách nhiệt); (2) Đối lưu là truyền nhiệt bằng các dòng chất lưu nóng nổi lên, lạnh chìm xuống (hình thức chính ở CHẤT LỎNG và CHẤT KHÍ, không xảy ra ở chất rắn và chân không); (3) Bức xạ nhiệt là truyền nhiệt bằng các tia nhiệt đi thẳng (truyền được cả trong CHÂN KHÔNG; vật sẫm màu nhám hấp thụ tia nhiệt tốt hơn vật sáng bóng).',
@@ -551,7 +551,7 @@ KHTN.push(
     {d:4,q:'Phích (bình thủy) giữ nước nóng lâu gồm vỏ hai lớp thủy tinh có hút chân không ở giữa và tráng bạc mặt trong. Lớp chân không và lớp tráng bạc lần lượt ngăn cản hình thức truyền nhiệt nào?',o:['Chân không ngăn dẫn nhiệt & đối lưu; lớp tráng bạc phản xạ ngăn bức xạ nhiệt','Chân không ngăn bức xạ nhiệt; lớp tráng bạc ngăn đối lưu','Cả hai chỉ ngăn dẫn nhiệt','Lớp tráng bạc tự đun nóng nước'],w:'Thiết kế phích nước triệt tiêu đồng thời cả 3 hình thức truyền nhiệt.'}
   ]},
 
-{ id:'l8-van-dong-tieu-hoa', grade:8, term:'HK1', stage:2, weeks:'Tuần 16–17', periods:9, order:9, subj:'sinh', title:'Bài 9: Cơ thể người: Hệ vận động, Dinh dưỡng & Hệ tiêu hóa', prereq:['l7-dinh-duong-van-chuyen'],
+{ id:'l8-van-dong-tieu-hoa', grade:8, term:'HK2', stage:3, weeks:'Tuần 25–26', periods:9, order:13, chapCode:'Chương VII', chapTitle:'Sinh học cơ thể người', sgk:'Bài 30–32', subj:'sinh', title:'Khái quát cơ thể người, Hệ vận động & Dinh dưỡng – Tiêu hóa', prereq:['l7-dinh-duong-van-chuyen'],
   theory:[
     'Hệ vận động gồm bộ xương (khoảng 206 xương ở người trưởng thành, nối với nhau bởi các khớp động, bán động, bất động) và hệ cơ (khoảng 600 cơ vân bám vào xương). Xương có tính bền chắc nhờ muối khoáng (chủ yếu calcium) và tính mềm dẻo nhờ chất hữu cơ (collagen).',
     'Bảo vệ hệ vận động: ngồi học đúng tư thế ngay ngắn, mang cặp đều hai vai để chống cong vẹo cột sống; bổ sung calcium và vitamin D chống còi xương (trẻ em) và loãng xương (người già). Khi sơ cứu người gãy xương: phải CỐ ĐỊNH xương gãy bằng nẹp trước khi di chuyển, không tự ý nắn bóp.',
@@ -595,7 +595,7 @@ KHTN.push(
     {d:4,q:'Dịch mật do gan tiết ra KHÔNG chứa enzyme tiêu hóa nhưng lại rất quan trọng đối với tiêu hóa lipid vì sao?',o:['Muối mật nhũ tương hóa chất béo thành các giọt nhỏ li ti, tăng diện tích tiếp xúc cho enzyme lipase phân giải','Dịch mật biến chất béo thành đường glucose ngay lập tức','Dịch mật tạo môi trường acid cực mạnh pH = 1','Dịch mật tiêu hóa tinh bột sống'],w:'Nhũ tương hóa làm tăng diện tích bề mặt tiếp xúc giữa lipid không tan trong nước với enzyme lipase.'}
   ]},
 
-{ id:'l8-co-the-nguoi', grade:8, term:'HK2', stage:3, weeks:'Tuần 25–26', periods:10, order:13, subj:'sinh', title:'Bài 13: Máu, Hệ tuần hoàn, Hệ hô hấp & Hệ bài tiết', prereq:['l8-van-dong-tieu-hoa'],
+{ id:'l8-co-the-nguoi', grade:8, term:'HK2', stage:4, weeks:'Tuần 27–29', periods:10, order:14, chapCode:'Chương VII', chapTitle:'Sinh học cơ thể người', sgk:'Bài 33–36', subj:'sinh', title:'Máu, Hệ tuần hoàn, Hô hấp, Bài tiết & Cân bằng môi trường trong', prereq:['l8-van-dong-tieu-hoa'],
   theory:[
     'Máu gồm huyết tương (lỏng, màu vàng nhạt, ~55% thể tích, vận chuyển chất dinh dưỡng, hormone, chất thải) và các tế bào máu (~45%): Hồng cầu (không nhân, hình đĩa lõm hai mặt, chứa sắc tố hemoglobin Hb vận chuyển O₂ và CO₂), Bạch cầu (có nhân, bảo vệ cơ thể bằng thực bào, tạo kháng thể miễn dịch), Tiểu cầu (tham gia cơ chế đông máu bịt kín vết thương).',
     'Hệ nhóm máu ABO có 4 nhóm máu: O, A, B, AB. Nhóm máu O không có kháng nguyên A, B trên hồng cầu nên truyền được cho cả 4 nhóm (nhóm chuyên cho); nhóm AB không có kháng thể α, β trong huyết tương nên nhận được từ cả 4 nhóm (nhóm chuyên nhận). Tiêm vaccine là đưa kháng nguyên đã làm yếu/bất hoạt vào cơ thể để kích thích tạo miễn dịch chủ động đặc hiệu.',
@@ -639,7 +639,7 @@ KHTN.push(
     {d:4,q:'Nếu kết quả xét nghiệm nước tiểu chính thức của một người liên tục có nhiều đường GLUCOSE thì người đó có nguy cơ mắc bệnh lí rối loạn nội môi nào?',o:['Bệnh đái tháo đường (tiểu đường) do thiếu hoặc giảm tác dụng hormone insulin','Bệnh cận thị bẩm sinh','Bệnh còi xương thiếu vitamin D','Bệnh bướu cổ thiếu iodine'],w:'Đường huyết tăng quá ngưỡng thận khiến ống thận không tái hấp thụ hết glucose, thải ra nước tiểu.'}
   ]},
 
-{ id:'l8-than-kinh-noi-tiet', grade:8, term:'HK2', stage:4, weeks:'Tuần 30–32', periods:9, order:15, subj:'sinh', title:'Bài 15: Hệ thần kinh, Giác quan, Nội tiết & Sinh sản ở người', prereq:['l8-co-the-nguoi'],
+{ id:'l8-than-kinh-noi-tiet', grade:8, term:'HK2', stage:4, weeks:'Tuần 30–32', periods:10, order:15, chapCode:'Chương VII', chapTitle:'Sinh học cơ thể người', sgk:'Bài 37–40', subj:'sinh', title:'Hệ thần kinh, Giác quan, Nội tiết, Da & Sinh sản ở người', prereq:['l8-co-the-nguoi'],
   theory:[
     'Hệ thần kinh gồm bộ phận trung ương (não bộ và tủy sống) và bộ phận ngoại biên (các dây thần kinh và hạch thần kinh). Đơn vị cấu tạo là tế bào thần kinh (neuron) có chức năng cảm ứng và dẫn truyền xung thần kinh. Một cung phản xạ gồm 5 khâu: Cơ quan thụ cảm → Neuron hướng tâm (cảm giác) → Trung ương thần kinh → Neuron li tâm (vận động) → Cơ quan phản ứng.',
     'Phản xạ không điều kiện là bẩm sinh, bền vững (rụt tay khi chạm vật nóng, trẻ sơ sinh bú mẹ); Phản xạ có điều kiện hình thành qua học tập, rèn luyện (dừng xe trước đèn đỏ, tiết nước bọt khi nhìn thấy quả chanh). Cần ngủ đủ giấc, không dùng chất kích thích/ma túy để bảo vệ hệ thần kinh.',
@@ -683,7 +683,7 @@ KHTN.push(
     {d:4,q:'Khi xa bữa ăn nhiều giờ hoặc vận động mạnh làm nồng độ glucose trong máu hạ thấp, tuyến tụy sẽ tiết hormone nào để phân giải glycogen ở gan thành glucose trả lại máu?',o:['Glucagon','Insulin','Thyroxine','Estrogen'],w:'Cặp hormone đối kháng Insulin (hạ đường huyết) và Glucagon (tăng đường huyết) giữ đường máu luôn ổn định.'}
   ]},
 
-{ id:'l8-he-sinh-thai', grade:8, term:'HK2', stage:4, weeks:'Tuần 33–34', periods:8, order:16, subj:'sinh', title:'Bài 16: Môi trường, Quần thể, Quần xã, Hệ sinh thái & Sinh quyển', prereq:['l6-phan-loai'],
+{ id:'l8-he-sinh-thai', grade:8, term:'HK2', stage:4, weeks:'Tuần 33–35', periods:10, order:16, chapCode:'Chương VIII', chapTitle:'Sinh vật và môi trường', sgk:'Bài 41–46', subj:'sinh', title:'Môi trường, Quần thể, Quần xã, Hệ sinh thái, Sinh quyển & Bảo vệ môi trường', prereq:['l6-phan-loai'],
   theory:[
     'Môi trường sống của sinh vật gồm 4 loại chính: môi trường cạn (mặt đất – không khí), môi trường nước, môi trường trong đất và môi trường sinh vật. Các nhân tố sinh thái chia làm: Nhân tố vô sinh (ánh sáng, nhiệt độ, độ ẩm, đất, nước, gió) và Nhân tố hữu sinh (các sinh vật khác và con người). Giới hạn sinh thái là khoảng giá trị xác định của một nhân tố sinh thái mà trong đó sinh vật có thể tồn tại và phát triển ổn định.',
     'Quần thể sinh vật là tập hợp các cá thể CÙNG LOÀI, cùng sinh sống trong một khoảng không gian xác định, vào một thời điểm nhất định và có khả năng sinh sản tạo thế hệ mới (các đặc trưng: tỉ lệ giới tính, nhóm tuổi, mật độ cá thể, kích thước quần thể).',
