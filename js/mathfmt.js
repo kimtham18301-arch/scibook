@@ -113,7 +113,8 @@ window.KHTNMath = {
 
   // Structured Formula Block formatting (for Lesson Formulas, Notebook & PDF Formula Sheets):
   // Supports 'Tên công thức: Biểu thức || Giải thích đại lượng & đơn vị'
-  formatFormula: function(raw){
+  // When interactive === true (web UI), symbol explanations stay hidden until clicked.
+  formatFormula: function(raw, interactive){
     if (raw == null || raw === '') return '';
     var parts = String(raw).split(' || ');
     var mainRaw = parts[0] || '';
@@ -136,6 +137,17 @@ window.KHTNMath = {
 
     if (descRaw) {
       var formattedDesc = coreFormat(descRaw).replace(/^(Trong đó:|Ý nghĩa:|Lưu ý:|Cách tính:|Cách đổi:|Bản chất:|Hiện tượng:|Điều kiện xảy ra:|Ví dụ:)/, '<i>$1</i>');
+      if (interactive) {
+        return (
+          '<details class="formula-acc">' +
+            '<summary class="f-main f-sum">' +
+              '<span class="f-main-txt">' + mainHtml + '</span>' +
+              '<span class="f-pill">Giải thích <span class="chev"></span></span>' +
+            '</summary>' +
+            '<div class="f-desc">– ' + formattedDesc + '</div>' +
+          '</details>'
+        );
+      }
       return '<div class="f-main">' + mainHtml + '</div><div class="f-desc">– ' + formattedDesc + '</div>';
     }
     return '<div class="f-main">' + mainHtml + '</div>';
